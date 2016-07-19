@@ -25,6 +25,7 @@ public class APIController {
     public static ConcurrentHashMap<String, QueueListener> listeners = new ConcurrentHashMap<>();
     private static Plugin plugin;
     private static CLogger logger;
+    private static boolean badPacketSending = false;
 
     public static void setPlugin(Plugin mainPlugin) {
         plugin = mainPlugin;
@@ -36,6 +37,9 @@ public class APIController {
     @Path("badpacket")
     @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
     public Response badPacket() {
+        if (badPacketSending)
+            return Response.ok("Bad Packet being sent...").header("Access-Control-Allow-Origin", "*").build();
+        badPacketSending = true;
         logger.trace("Call to badPacket()");
         try {
             MsgEvent enable = new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(),
@@ -50,6 +54,7 @@ public class APIController {
                     ",dstPlugin=" + plugin.getPluginID() +
                     ",runCommand=sendudp e4:1d:2d:0e:a6:c0 128.163.202.51 8080 p2p2 10");
             plugin.sendMsgEvent(enable);
+            badPacketSending = false;
             return Response.ok("Program starting...").header("Access-Control-Allow-Origin", "*").build();
         } catch (Exception e) {
             logger.error("sendPacket() : {}", e.getMessage());
@@ -466,5 +471,12 @@ public class APIController {
             this.running = false;
             this.alive = false;
         }
+    }
+
+    public static boolean isBadPacketSending() {
+        return badPacketSending;
+    }
+    public static void setBadPacketSending(boolean badPacketSending) {
+        APIController.badPacketSending = badPacketSending;
     }
 }
