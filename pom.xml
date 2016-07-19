@@ -110,7 +110,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>edu.uky.ukhc.genomics.Main</mainClass>
+							<mainClass>edu.uky.irnc.restful.Plugin</mainClass>
 						</manifest>
 						<manifestEntries>
 							<artifactId>irnc-restful-plugin</artifactId>

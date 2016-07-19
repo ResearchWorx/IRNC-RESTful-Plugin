@@ -48,4 +48,8 @@ public class Plugin extends CPlugin {
 
         return GrizzlyHttpServerFactory.createHttpServer(URI.create(BASE_URI), rc);
     }
+
+    public static void main(String[] args) {
+        System.out.println("This is not meant to be used outside of the Cresco framework.");
+    }
 }
