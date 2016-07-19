@@ -67,7 +67,7 @@ public class APIController {
     @Path("submit/{args:.*}")
     @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
     public Response getSubmit(@PathParam("args") String args) {
-        System.out.println("SUBMIT CALL: \"" + args + "\"");
+        logger.trace("SUBMIT CALL: \"" + args + "\"");
         try {
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-zzz");
             String[] parsedArgs = args.split(" ");
