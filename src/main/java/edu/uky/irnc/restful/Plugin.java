@@ -3,8 +3,6 @@ package edu.uky.irnc.restful;
 import com.google.auto.service.AutoService;
 import com.researchworx.cresco.library.plugin.core.CPlugin;
 import edu.uky.irnc.restful.controllers.APIController;
-import org.glassfish.grizzly.http.server.CLStaticHttpHandler;
-import org.glassfish.grizzly.http.server.HttpHandler;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -48,9 +46,6 @@ public class Plugin extends CPlugin {
 
         APIController.setPlugin(this);
 
-        HttpServer server =  GrizzlyHttpServerFactory.createHttpServer(URI.create(BASE_URI), rc);
-        HttpHandler handler = new CLStaticHttpHandler(Plugin.class.getClassLoader(), "includes/");
-        server.getServerConfiguration().addHttpHandler(handler, "/includes");
-        return server;
+        return GrizzlyHttpServerFactory.createHttpServer(URI.create(BASE_URI), rc);
     }
 }
