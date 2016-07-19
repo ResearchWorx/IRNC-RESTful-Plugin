@@ -20,6 +20,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+@SuppressWarnings("unused")
 @Path("API")
 public class APIController {
     public static ConcurrentHashMap<String, QueueListener> listeners = new ConcurrentHashMap<>();
@@ -53,7 +54,7 @@ public class APIController {
             enable.setParam("configparams", "pluginname=executor-plugin,jarfile=executor/target/executor-plugin-0.1.0.jar" +
                     ",dstPlugin=" + plugin.getPluginID() +
                     ",runCommand=sendudp e4:1d:2d:0e:a6:c0 128.163.202.51 8080 p2p2 10");
-            plugin.sendMsgEvent(enable);
+            MsgEvent ret = plugin.sendRPC(enable);
             badPacketSending = false;
             return Response.ok("Program starting...").header("Access-Control-Allow-Origin", "*").build();
         } catch (Exception e) {

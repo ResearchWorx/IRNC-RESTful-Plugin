@@ -14,7 +14,7 @@ class Executor extends CExecutor {
 
     Executor(CPlugin plugin) {
         super(plugin);
-        logger = new CLogger(plugin.getMsgOutQueue(), plugin.getRegion(), plugin.getAgent(),
+        logger = new CLogger(Executor.class, plugin.getMsgOutQueue(), plugin.getRegion(), plugin.getAgent(),
                 plugin.getPluginID(), CLogger.Level.Trace);
     }
 
