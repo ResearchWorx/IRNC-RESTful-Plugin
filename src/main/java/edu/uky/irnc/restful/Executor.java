@@ -14,7 +14,8 @@ class Executor extends CExecutor {
 
     Executor(CPlugin plugin) {
         super(plugin);
-        logger = new CLogger(this.plugin.getMsgOutQueue(), this.plugin.getRegion(), this.plugin.getAgent(), this.plugin.getPluginID(), CLogger.Level.Info);
+        logger = new CLogger(plugin.getMsgOutQueue(), plugin.getRegion(), plugin.getAgent(),
+                plugin.getPluginID(), CLogger.Level.Info);
     }
 
     @Override
@@ -39,7 +40,8 @@ class Executor extends CExecutor {
                 params.put("dst_agent", plugin.getAgent());
                 params.put("configtype", "pluginremove");
                 params.put("plugin", msg.getParam("src_plugin"));
-                plugin.sendMsgEvent(new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(), plugin.getPluginID(), params));
+                plugin.sendMsgEvent(new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(),
+                        plugin.getAgent(), plugin.getPluginID(), params));
                 break;
             case "execution_log":
                 logger.info("Command 'execution_log' received");
