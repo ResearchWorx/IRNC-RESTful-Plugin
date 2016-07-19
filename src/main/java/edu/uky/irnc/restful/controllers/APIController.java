@@ -46,12 +46,14 @@ public class APIController {
             enable.setParam("dst_region", plugin.getRegion());
             enable.setParam("dst_agent", plugin.getAgent());
             enable.setParam("configtype", "pluginadd");
-            enable.setParam("configparams", "pluginname=executor-plugin,jarfile=cresco-agent-executor-plugin-0.1.0-jar-with-dependencies.jar,runCommand=sendudp e4:1d:2d:0e:a6:c0 128.163.202.51 8080 p2p2 10");
+            enable.setParam("configparams", "pluginname=executor-plugin,jarfile=executor-plugin-0.1.0.jar" +
+                    ",runCommand=sendudp e4:1d:2d:0e:a6:c0 128.163.202.51 8080 p2p2 10");
             plugin.sendMsgEvent(enable);
             return Response.ok("Program starting...").header("Access-Control-Allow-Origin", "*").build();
         } catch (Exception e) {
             logger.error("sendPacket() : {}", e.getMessage());
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error : " + e.getMessage()).header("Access-Control-Allow-Origin", "*").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error : " +
+                    e.getMessage()).header("Access-Control-Allow-Origin", "*").build();
         }
     }
 
@@ -93,7 +95,8 @@ public class APIController {
             String amqp_port = "5672";
             String amqp_login = "tester";
             String amqp_password = "tester01";
-            MsgEvent enable = new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(), plugin.getPluginID(), "Issuing command to start program");
+            MsgEvent enable = new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(),
+                    plugin.getPluginID(), "Issuing command to start program");
             enable.setParam("src_region", plugin.getRegion());
             enable.setParam("src_agent", plugin.getAgent());
             enable.setParam("src_plugin", plugin.getPluginID());
@@ -101,10 +104,13 @@ public class APIController {
             enable.setParam("dst_agent", plugin.getAgent());
             enable.setParam("configtype", "pluginadd");
             String amqp_exchange = java.util.UUID.randomUUID().toString();
-            QueueListener listener = new QueueListener(amqp_server, amqp_login, amqp_password, amqp_exchange, program, start, end, programArgs);
+            QueueListener listener = new QueueListener(amqp_server, amqp_login, amqp_password, amqp_exchange, program,
+                    start, end, programArgs);
             new Thread(listener).start();
             listeners.put(amqp_exchange, listener);
-            enable.setParam("configparams", "pluginname=cresco-agent-executor-plugin,jarfile=cresco-agent-executor-plugin-0.1.0-jar-with-dependencies.jar,mainclass=shared.PluginImplementation,watchdogtimer=5000,runCommand=" + args.replaceAll(",", "\\,") + " " + amqp_server + " " + amqp_port + " " + amqp_login + " " + amqp_password + " " + amqp_exchange);
+            enable.setParam("configparams", "pluginname=executor-plugin,jarfile=executor-plugin-0.1.0.jar,runCommand=" +
+                    args.replaceAll(",", "\\,") + " " + amqp_server + " " + amqp_port + " " + amqp_login + " " +
+                    amqp_password + " " + amqp_exchange);
 
             try {
                 MsgEvent response = plugin.sendRPC(enable);
@@ -113,11 +119,13 @@ public class APIController {
                 }
                 return Response.ok(amqp_exchange).header("Access-Control-Allow-Origin", "*").build();
             } catch (Exception ex) {
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error").header("Access-Control-Allow-Origin", "*").build();
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error")
+                        .header("Access-Control-Allow-Origin", "*").build();
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error").header("Access-Control-Allow-Origin", "*").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error")
+                    .header("Access-Control-Allow-Origin", "*").build();
         }
     }
 
@@ -140,7 +148,8 @@ public class APIController {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return Response.status(500).entity("An exception has occured!").header("Access-Control-Allow-Origin", "*").build();
+        return Response.status(500).entity("An exception has occured!")
+                .header("Access-Control-Allow-Origin", "*").build();
     }
 
     @GET
@@ -155,7 +164,8 @@ public class APIController {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return Response.status(500).entity("No such exchange found!").header("Access-Control-Allow-Origin", "*").build();
+        return Response.status(500).entity("No such exchange found!")
+                .header("Access-Control-Allow-Origin", "*").build();
     }
 
     @GET
@@ -168,7 +178,8 @@ public class APIController {
             listeners.remove(amqp_exchange);
             return Response.ok("QueryListener Disposed").header("Access-Control-Allow-Origin", "*").build();
         }
-        return Response.status(500).entity("No such exchange found or has already been closed!").header("Access-Control-Allow-Origin", "*").build();
+        return Response.status(500).entity("No such exchange found or has already been closed!")
+                .header("Access-Control-Allow-Origin", "*").build();
     }
 
     public static class QueueListener implements Runnable {
@@ -196,7 +207,8 @@ public class APIController {
         private final Object resultsLock = new Object();
         private HashSet<String> results = new HashSet<>();
 
-        QueueListener(String amqp_server, String amqp_login, String amqp_password, String amqp_queue_name, String program, Date start, Date end, String programArgs) {
+        QueueListener(String amqp_server, String amqp_login, String amqp_password, String amqp_queue_name,
+                      String program, Date start, Date end, String programArgs) {
             this.amqp_server = amqp_server;
             this.amqp_login = amqp_login;
             this.amqp_password = amqp_password;
@@ -446,7 +458,8 @@ public class APIController {
                 params.put("dst_agent", plugin.getAgent());
                 params.put("configtype", "pluginremove");
                 params.put("plugin", this.pluginID);
-                plugin.sendMsgEvent(new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(), plugin.getPluginID(), params));
+                plugin.sendMsgEvent(new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(),
+                        plugin.getPluginID(), params));
             }
             this.running = false;
             this.alive = false;
