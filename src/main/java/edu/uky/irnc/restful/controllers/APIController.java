@@ -46,7 +46,7 @@ public class APIController {
             enable.setParam("dst_region", plugin.getRegion());
             enable.setParam("dst_agent", plugin.getAgent());
             enable.setParam("configtype", "pluginadd");
-            enable.setParam("configparams", "pluginname=executor-plugin,jarfile=executor-plugin-0.1.0.jar" +
+            enable.setParam("configparams", "pluginname=executor-plugin,jarfile=executor/target/executor-plugin-0.1.0.jar" +
                     ",dstPlugin=" + plugin.getPluginID() +
                     ",runCommand=sendudp e4:1d:2d:0e:a6:c0 128.163.202.51 8080 p2p2 10");
             plugin.sendMsgEvent(enable);
@@ -109,7 +109,7 @@ public class APIController {
                     start, end, programArgs);
             new Thread(listener).start();
             listeners.put(amqp_exchange, listener);
-            enable.setParam("configparams", "pluginname=executor-plugin,jarfile=executor-plugin-0.1.0.jar" +
+            enable.setParam("configparams", "pluginname=executor-plugin,jarfile=executor/target/executor-plugin-0.1.0.jar" +
                     ",dstPlugin=" + plugin.getPluginID() +
                     ",runCommand=" + args.replaceAll(",", "\\,") + " " + amqp_server + " " + amqp_port + " " +
                     amqp_login + " " + amqp_password + " " + amqp_exchange);
