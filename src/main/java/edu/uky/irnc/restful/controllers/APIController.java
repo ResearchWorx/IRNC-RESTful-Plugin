@@ -26,7 +26,6 @@ public class APIController {
     public static ConcurrentHashMap<String, QueueListener> listeners = new ConcurrentHashMap<>();
     private static Plugin plugin;
     private static CLogger logger;
-    private static boolean badPacketSending = false;
 
     public static void setPlugin(Plugin mainPlugin) {
         plugin = mainPlugin;
@@ -38,9 +37,6 @@ public class APIController {
     @Path("badpacket")
     @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
     public Response badPacket() {
-        if (badPacketSending)
-            return Response.ok("Bad Packet being sent...").header("Access-Control-Allow-Origin", "*").build();
-        badPacketSending = true;
         logger.trace("Call to badPacket()");
         try {
             MsgEvent enable = new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(),
@@ -51,14 +47,14 @@ public class APIController {
             enable.setParam("dst_region", plugin.getRegion());
             enable.setParam("dst_agent", plugin.getAgent());
             enable.setParam("configtype", "pluginadd");
-            enable.setParam("configparams", "pluginname=executor-plugin,jarfile=executor/target/executor-plugin-0.1.0.jar" +
+            enable.setParam("configparams", "pluginname=executor-plugin" +
+                    ",jarfile=executor/target/executor-plugin-0.1.0.jar" +
                     ",dstPlugin=" + plugin.getPluginID() +
                     ",runCommand=sendudp e4:1d:2d:0e:a6:c0 128.163.202.51 8080 p2p2 10");
-            MsgEvent ret = plugin.sendRPC(enable);
-            badPacketSending = false;
+            plugin.sendMsgEvent(enable);
             return Response.ok("Program starting...").header("Access-Control-Allow-Origin", "*").build();
         } catch (Exception e) {
-            logger.error("sendPacket() : {}", e.getMessage());
+            logger.error("badPacket() : {}", e.getMessage());
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error : " +
                     e.getMessage()).header("Access-Control-Allow-Origin", "*").build();
         }
@@ -67,8 +63,9 @@ public class APIController {
     @GET
     @Path("submit/{args:.*}")
     @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
-    public Response getSubmit(@PathParam("args") String args) {
-        logger.trace("SUBMIT CALL: \"" + args + "\"");
+    public Response submit(@PathParam("args") String args) {
+        logger.trace("Call to submit()");
+        logger.debug("args:  \"{}\"", args);
         try {
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-zzz");
             String[] parsedArgs = args.split(" ");
@@ -115,7 +112,8 @@ public class APIController {
                     start, end, programArgs);
             new Thread(listener).start();
             listeners.put(amqp_exchange, listener);
-            enable.setParam("configparams", "pluginname=executor-plugin,jarfile=executor/target/executor-plugin-0.1.0.jar" +
+            enable.setParam("configparams", "pluginname=executor-plugin" +
+                    ",jarfile=executor/target/executor-plugin-0.1.0.jar" +
                     ",dstPlugin=" + plugin.getPluginID() +
                     ",runCommand=" + args.replaceAll(",", "\\,") + " " + amqp_server + " " + amqp_port + " " +
                     amqp_login + " " + amqp_password + " " + amqp_exchange);
@@ -140,7 +138,8 @@ public class APIController {
     @GET
     @Path("list")
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public Response getList() {
+    public Response list() {
+        logger.trace("Call to list()");
         try {
             StringBuilder sb = new StringBuilder();
             sb.append("[");
@@ -163,7 +162,9 @@ public class APIController {
     @GET
     @Path("results/{amqp_exchange}")
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public Response getResults(@PathParam("amqp_exchange") String amqp_exchange) {
+    public Response results(@PathParam("amqp_exchange") String amqp_exchange) {
+        logger.trace("Call to results()");
+        logger.debug("amqp_exchange: ", amqp_exchange);
         try {
             QueueListener listener = listeners.get(amqp_exchange);
             if (listener != null) {
@@ -180,6 +181,8 @@ public class APIController {
     @Path("close/{amqp_exchange}")
     @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
     public Response closeListener(@PathParam("amqp_exchange") String amqp_exchange) {
+        logger.trace("Call to closeListener()");
+        logger.debug("amqp_exchange: {}", amqp_exchange);
         QueueListener listener;
         if ((listener = listeners.get(amqp_exchange)) != null) {
             listener.kill();
@@ -472,12 +475,5 @@ public class APIController {
             this.running = false;
             this.alive = false;
         }
-    }
-
-    public static boolean isBadPacketSending() {
-        return badPacketSending;
-    }
-    public static void setBadPacketSending(boolean badPacketSending) {
-        APIController.badPacketSending = badPacketSending;
     }
 }
