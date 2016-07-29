@@ -45,7 +45,7 @@ public class Plugin extends CPlugin {
                 .register(APIController.class);
 
         APIController.setPlugin(this);
-
+        System.setProperty("java.net.preferIPv4Stack" , "true");
         return GrizzlyHttpServerFactory.createHttpServer(URI.create(BASE_URI), rc);
     }
 
