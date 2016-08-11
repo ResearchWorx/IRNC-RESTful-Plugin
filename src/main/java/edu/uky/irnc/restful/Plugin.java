@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 
 @AutoService(CPlugin.class)
 public class Plugin extends CPlugin {
-    private static final String BASE_URI = "http://0.0.0.0:32001/";
+    private static final String BASE_URI = "http://128.163.202.50:32001/";
     private HttpServer server;
 
     public void start() {
@@ -45,7 +45,6 @@ public class Plugin extends CPlugin {
                 .register(APIController.class);
 
         APIController.setPlugin(this);
-        System.setProperty("java.net.preferIPv4Stack" , "true");
         return GrizzlyHttpServerFactory.createHttpServer(URI.create(BASE_URI), rc);
     }
 
