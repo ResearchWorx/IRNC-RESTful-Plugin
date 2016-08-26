@@ -77,7 +77,7 @@ public class APIController {
             enable.setParam("configparams", "pluginname=executor-plugin" +
                     ",jarfile=executor/target/executor-plugin-0.1.0.jar" +
                     ",dstPlugin=" + plugin.getPluginID() +
-                    ",runCommand=sendudp e4:1d:2d:0e:a6:c0 128.163.202.51 8080 p2p2 10");
+                    ",runCommand=kanon 10000 100 128.163.217.97 5672 pmacct kanonex_read 128.163.217.97 5672 kanonex_write_e 1 0 0 'irnc_user' 'u$export01' 'irnc_user' 'u$export01'");
             plugin.sendMsgEvent(enable);
             return Response.ok("Program starting...").header("Access-Control-Allow-Origin", "*").build();
         } catch (Exception e) {
