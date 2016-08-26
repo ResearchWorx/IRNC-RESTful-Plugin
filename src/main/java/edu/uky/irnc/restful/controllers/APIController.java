@@ -61,6 +61,33 @@ public class APIController {
     }
 
     @GET
+    @Path("kanon")
+    @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
+    public Response kAnon() {
+        logger.trace("Call to kAnon()");
+        try {
+            MsgEvent enable = new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(),
+                    plugin.getPluginID(), "Issuing command to start kanon executor");
+            enable.setParam("src_region", plugin.getRegion());
+            enable.setParam("src_agent", plugin.getAgent());
+            enable.setParam("src_plugin", plugin.getPluginID());
+            enable.setParam("dst_region", plugin.getRegion());
+            enable.setParam("dst_agent", plugin.getAgent());
+            enable.setParam("configtype", "pluginadd");
+            enable.setParam("configparams", "pluginname=executor-plugin" +
+                    ",jarfile=executor/target/executor-plugin-0.1.0.jar" +
+                    ",dstPlugin=" + plugin.getPluginID() +
+                    ",runCommand=sendudp e4:1d:2d:0e:a6:c0 128.163.202.51 8080 p2p2 10");
+            plugin.sendMsgEvent(enable);
+            return Response.ok("Program starting...").header("Access-Control-Allow-Origin", "*").build();
+        } catch (Exception e) {
+            logger.error("kAnon() : {}", e.getMessage());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error : " +
+                    e.getMessage()).header("Access-Control-Allow-Origin", "*").build();
+        }
+    }
+
+    @GET
     @Path("submit/{args:.*}")
     @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
     public Response submit(@PathParam("args") String args) {
