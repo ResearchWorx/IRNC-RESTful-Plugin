@@ -94,7 +94,7 @@ public class APIController {
     @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
     public Response submit(@PathParam("args") String args) {
         logger.trace("Call to submit()");
-        logger.debug("args:  \"{}\"", args);
+        //logger.debug("args: \"{}\"", args);
         if (args.startsWith("kanon")) {
             try {
                 MsgEvent enable = new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(),
