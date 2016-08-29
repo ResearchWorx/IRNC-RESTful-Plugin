@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Path("API")
 public class APIController {
     public static ConcurrentHashMap<String, QueueListener> listeners = new ConcurrentHashMap<>();
+    public static ConcurrentHashMap<String, KanonWatcher> watchers = new ConcurrentHashMap<>();
     private static Plugin plugin;
     private static CLogger logger;
 
@@ -94,72 +95,107 @@ public class APIController {
     public Response submit(@PathParam("args") String args) {
         logger.trace("Call to submit()");
         logger.debug("args:  \"{}\"", args);
-        try {
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-zzz");
-            String[] parsedArgs = args.split(" ");
-            String program = "";
-            if (parsedArgs.length >= 0)
-                program = parsedArgs[0];
-            Date start = new Date();
-            if (parsedArgs.length >= 1) {
-                try {
-                    start = formatter.parse(parsedArgs[1] + "-EDT");
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-            }
-            Date end = new Date();
-            if (parsedArgs.length >= 2) {
-                try {
-                    end = formatter.parse(parsedArgs[2] + "-EDT");
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-            }
-            String programArgs = "";
-            if (parsedArgs.length >= 3) {
-                for (int i = 3; i < parsedArgs.length; i++) {
-                    programArgs += parsedArgs[i] + " ";
-                }
-                programArgs = programArgs.trim();
-            }
-            String amqp_server = "128.163.217.97";
-            String amqp_port = "5672";
-            String amqp_login = "tester";
-            String amqp_password = "tester01";
-            MsgEvent enable = new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(),
-                    plugin.getPluginID(), "Issuing command to start program");
-            enable.setParam("src_region", plugin.getRegion());
-            enable.setParam("src_agent", plugin.getAgent());
-            enable.setParam("src_plugin", plugin.getPluginID());
-            enable.setParam("dst_region", plugin.getRegion());
-            enable.setParam("dst_agent", plugin.getAgent());
-            enable.setParam("configtype", "pluginadd");
-            String amqp_exchange = java.util.UUID.randomUUID().toString();
-            QueueListener listener = new QueueListener(amqp_server, amqp_login, amqp_password, amqp_exchange, program,
-                    start, end, programArgs);
-            new Thread(listener).start();
-            listeners.put(amqp_exchange, listener);
-            enable.setParam("configparams", "pluginname=executor-plugin" +
-                    ",jarfile=executor/target/executor-plugin-0.1.0.jar" +
-                    ",dstPlugin=" + plugin.getPluginID() +
-                    ",runCommand=" + args.replaceAll(",", "\\,") + " " + amqp_server + " " + amqp_port + " " +
-                    amqp_login + " " + amqp_password + " " + amqp_exchange);
-
+        if (args.startsWith("kanon")) {
             try {
-                MsgEvent response = plugin.sendRPC(enable);
-                if (response != null) {
-                    listener.setPluginID(response.getParam("plugin"));
+                MsgEvent enable = new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(),
+                        plugin.getPluginID(), "Issuing command to start program");
+                enable.setParam("src_region", plugin.getRegion());
+                enable.setParam("src_agent", plugin.getAgent());
+                enable.setParam("src_plugin", plugin.getPluginID());
+                enable.setParam("dst_region", plugin.getRegion());
+                enable.setParam("dst_agent", plugin.getAgent());
+                enable.setParam("configtype", "pluginadd");
+                String watcherID = java.util.UUID.randomUUID().toString();
+                KanonWatcher watcher = new KanonWatcher(watcherID, args);
+                new Thread(watcher).start();
+                watchers.put(watcherID, watcher);
+                enable.setParam("configparams", "pluginname=executor-plugin" +
+                        ",jarfile=executor/target/executor-plugin-0.1.0.jar" +
+                        ",dstPlugin=" + plugin.getPluginID() +
+                        ",runCommand=" + args);
+                try {
+                    MsgEvent response = plugin.sendRPC(enable);
+                    if (response != null)
+                        watcher.setPluginID(response.getParam("plugin"));
+                    return Response.ok(watcherID).header("Access-Control-Allow-Origin", "*").build();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error")
+                            .header("Access-Control-Allow-Origin", "*").build();
                 }
-                return Response.ok(amqp_exchange).header("Access-Control-Allow-Origin", "*").build();
             } catch (Exception ex) {
+                ex.printStackTrace();
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error")
                         .header("Access-Control-Allow-Origin", "*").build();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error")
-                    .header("Access-Control-Allow-Origin", "*").build();
+        } else {
+            try {
+                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-zzz");
+                String[] parsedArgs = args.split(" ");
+                String program = "";
+                if (parsedArgs.length >= 0)
+                    program = parsedArgs[0];
+                Date start = new Date();
+                if (parsedArgs.length >= 1) {
+                    try {
+                        start = formatter.parse(parsedArgs[1] + "-EDT");
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                }
+                Date end = new Date();
+                if (parsedArgs.length >= 2) {
+                    try {
+                        end = formatter.parse(parsedArgs[2] + "-EDT");
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                }
+                String programArgs = "";
+                if (parsedArgs.length >= 3) {
+                    for (int i = 3; i < parsedArgs.length; i++) {
+                        programArgs += parsedArgs[i] + " ";
+                    }
+                    programArgs = programArgs.trim();
+                }
+                String amqp_server = "128.163.217.97";
+                String amqp_port = "5672";
+                String amqp_login = "tester";
+                String amqp_password = "tester01";
+                MsgEvent enable = new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(),
+                        plugin.getPluginID(), "Issuing command to start program");
+                enable.setParam("src_region", plugin.getRegion());
+                enable.setParam("src_agent", plugin.getAgent());
+                enable.setParam("src_plugin", plugin.getPluginID());
+                enable.setParam("dst_region", plugin.getRegion());
+                enable.setParam("dst_agent", plugin.getAgent());
+                enable.setParam("configtype", "pluginadd");
+                String amqp_exchange = java.util.UUID.randomUUID().toString();
+                QueueListener listener = new QueueListener(amqp_server, amqp_login, amqp_password, amqp_exchange, program,
+                        start, end, programArgs);
+                new Thread(listener).start();
+                listeners.put(amqp_exchange, listener);
+                enable.setParam("configparams", "pluginname=executor-plugin" +
+                        ",jarfile=executor/target/executor-plugin-0.1.0.jar" +
+                        ",dstPlugin=" + plugin.getPluginID() +
+                        ",runCommand=" + args.replaceAll(",", "\\,") + " " + amqp_server + " " + amqp_port + " " +
+                        amqp_login + " " + amqp_password + " " + amqp_exchange);
+
+                try {
+                    MsgEvent response = plugin.sendRPC(enable);
+                    if (response != null) {
+                        listener.setPluginID(response.getParam("plugin"));
+                    }
+                    return Response.ok(amqp_exchange).header("Access-Control-Allow-Origin", "*").build();
+                } catch (Exception ex) {
+                    return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error")
+                            .header("Access-Control-Allow-Origin", "*").build();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error")
+                        .header("Access-Control-Allow-Origin", "*").build();
+            }
         }
     }
 
@@ -178,6 +214,29 @@ public class APIController {
             if (listeners.size() > 0) {
                 sb.deleteCharAt(sb.lastIndexOf(","));
             }
+            sb.append("]");
+            return Response.ok(sb.toString()).header("Access-Control-Allow-Origin", "*").build();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Response.status(500).entity("An exception has occured!")
+                .header("Access-Control-Allow-Origin", "*").build();
+    }
+
+    @GET
+    @Path("/list/kanon")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
+    public Response kAnonList() {
+        logger.trace("Call to kAnonList()");
+        try {
+            StringBuilder sb = new StringBuilder();
+            sb.append("[");
+            for (KanonWatcher watcher : watchers.values()) {
+                sb.append(watcher.getListing());
+                sb.append(",");
+            }
+            if (watchers.size() > 0)
+                sb.deleteCharAt(sb.lastIndexOf(","));
             sb.append("]");
             return Response.ok(sb.toString()).header("Access-Control-Allow-Origin", "*").build();
         } catch (Exception e) {
@@ -217,7 +276,13 @@ public class APIController {
             listeners.remove(amqp_exchange);
             return Response.ok("QueryListener Disposed").header("Access-Control-Allow-Origin", "*").build();
         }
-        return Response.status(500).entity("No such exchange found or has already been closed!")
+        KanonWatcher watcher;
+        if ((watcher = watchers.get(amqp_exchange)) != null) {
+            watcher.kill();
+            watchers.remove(amqp_exchange);
+            return Response.ok("KanonWatcher Disposed").header("Access-Control-Allow-Origin", "*").build();
+        }
+        return Response.status(500).entity("No such listener or watcher found or has already been closed!")
                 .header("Access-Control-Allow-Origin", "*").build();
     }
 
@@ -502,6 +567,84 @@ public class APIController {
             }
             this.running = false;
             this.alive = false;
+        }
+    }
+
+    public static class KanonWatcher implements Runnable {
+        private String id;
+        private String pluginID;
+        private String command;
+        private Date issued;
+
+        private boolean alive = true;
+
+        private final Object logLock = new Object();
+        private HashSet<String> logs = new HashSet<>();
+
+        KanonWatcher(String id, String command) {
+            this.id = id;
+            this.command = command;
+            this.issued = new Date();
+        }
+
+        @Override
+        public void run() {
+            try {
+                try {
+                    while (alive) {
+                        Thread.sleep(1000);
+                    }
+                    watchers.remove(id);
+                } catch (InterruptedException e) {
+                    // This can happen and is fine
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void log(String log) {
+            synchronized (logLock) {
+                logs.add(log);
+            }
+        }
+
+        private String getState() {
+            if (alive)
+                return "Running";
+            else
+                return "Shutting Down";
+        }
+
+        String getListing() {
+            return "{\",\"state\":\"" + getState() +
+                    "\",\"started\":\"" + issued +
+                    "\",\"command\":\"" + command + "\"}";
+        }
+
+        void setPluginID(String pluginID) {
+            this.pluginID = pluginID;
+        }
+
+        void dispose() {
+            this.alive = false;
+        }
+
+        void kill() {
+            logger.info("Destroying KanonWatcher [{}]", id);
+            if (alive) {
+                Map<String, String> params = new HashMap<>();
+                params.put("src_region", plugin.getRegion());
+                params.put("src_agent", plugin.getAgent());
+                params.put("src_plugin", plugin.getPluginID());
+                params.put("dst_region", plugin.getRegion());
+                params.put("dst_agent", plugin.getAgent());
+                params.put("configtype", "pluginremove");
+                params.put("plugin", this.pluginID);
+                plugin.sendMsgEvent(new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(),
+                        plugin.getPluginID(), params));
+            }
+            alive = false;
         }
     }
 }
