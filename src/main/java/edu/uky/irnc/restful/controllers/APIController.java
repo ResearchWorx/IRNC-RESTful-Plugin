@@ -617,7 +617,8 @@ public class APIController {
         }
 
         String getListing() {
-            return "{\",\"state\":\"" + getState() +
+            return "{\"id\":\"" + id +
+                    "\"state\":\"" + getState() +
                     "\",\"started\":\"" + issued +
                     "\",\"command\":\"" + command + "\"}";
         }
