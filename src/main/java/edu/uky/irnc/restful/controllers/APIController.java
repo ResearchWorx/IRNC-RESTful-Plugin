@@ -27,11 +27,19 @@ public class APIController {
     private static ConcurrentHashMap<String, KanonWatcher> watchers = new ConcurrentHashMap<>();
     private static Plugin plugin;
     private static CLogger logger;
+    private static String amqp_server;
+    private static String amqp_port;
+    private static String amqp_login;
+    private static String amqp_password;
 
     public static void setPlugin(Plugin mainPlugin) {
         plugin = mainPlugin;
         logger = new CLogger(APIController.class, plugin.getMsgOutQueue(), plugin.getRegion(), plugin.getAgent(),
                 plugin.getPluginID(), CLogger.Level.Trace);
+        amqp_server = plugin.getConfig().getStringParam("amqp_server", "128.163.217.97");
+        amqp_port = plugin.getConfig().getStringParam("amqp_port", "5672");
+        amqp_login = plugin.getConfig().getStringParam("amqp_login", "tester");
+        amqp_password = plugin.getConfig().getStringParam("amqp_password", "tester01");
     }
 
     @GET
@@ -79,7 +87,7 @@ public class APIController {
                     ",jarfile=executor/target/executor-plugin-0.1.0.jar" +
                     ",dstPlugin=" + plugin.getPluginID() +
                     ",requiresSudo=false" +
-                    ",runCommand=kanon 10000 100 128.163.217.97 5672 pmacct kanonex_read 128.163.217.97 5672 kanonex_write_e 1 0 0 'irnc_user' 'u$export01' 'irnc_user' 'u$export01'");
+                    ",runCommand=kanon 10000 100 " + amqp_server + " " + amqp_port + " pmacct kanonex_read " + amqp_server + " " + amqp_port + " kanonex_write_e 1 0 0 'irnc_user' 'u$export01' 'irnc_user' 'u$export01'");
             plugin.sendMsgEvent(enable);
             return Response.ok("Program starting...").header("Access-Control-Allow-Origin", "*").build();
         } catch (Exception e) {
@@ -94,7 +102,6 @@ public class APIController {
     @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
     public Response submit(@PathParam("args") String args) {
         logger.trace("Call to submit()");
-        //logger.debug("args: \"{}\"", args);
         if (args.startsWith("kanon")) {
             try {
                 MsgEvent enable = new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(),
@@ -171,10 +178,10 @@ public class APIController {
                         programArgs = programArgs.trim();
                     }
                 }
-                String amqp_server = "128.163.217.97";
-                String amqp_port = "5672";
-                String amqp_login = "tester";
-                String amqp_password = "tester01";
+                //String amqp_server = "128.163.217.97";
+                //String amqp_port = "5672";
+                //String amqp_login = "tester";
+                //String amqp_password = "tester01";
                 MsgEvent enable = new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(),
                         plugin.getPluginID(), "Issuing command to start program");
                 enable.setParam("src_region", plugin.getRegion());
