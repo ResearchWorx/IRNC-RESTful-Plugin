@@ -495,7 +495,7 @@ public class APIController {
                 List<String> keys = new ArrayList<>(logs.keySet());
                 Collections.sort(keys);
                 for (String key : keys) {
-                    logMessages.add(logs.get(key));
+                    logMessages.add(key + " " + logs.get(key));
                 }
             }
             StringBuilder ret = new StringBuilder();
