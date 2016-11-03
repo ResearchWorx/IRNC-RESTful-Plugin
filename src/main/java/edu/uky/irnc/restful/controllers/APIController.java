@@ -490,7 +490,7 @@ public class APIController {
             synchronized (this.resultsLock) {
                 resultMessages = new HashSet<>(this.results);
             }
-            HashSet<String> logMessages = new HashSet<>();
+            List<String> logMessages = new ArrayList<>();
             synchronized (this.logLock) {
                 List<Long> keys = new ArrayList<>(logs.keySet());
                 Collections.sort(keys);
