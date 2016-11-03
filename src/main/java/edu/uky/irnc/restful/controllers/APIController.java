@@ -320,7 +320,7 @@ public class APIController {
         private boolean alive = true;
 
         private final Object logLock = new Object();
-        private HashSet<String> logs = new HashSet<>();
+        private HashMap<String, String> logs = new HashMap<>();
         private final Object resultsLock = new Object();
         private HashSet<String> results = new HashSet<>();
 
@@ -451,9 +451,9 @@ public class APIController {
             }
         }
 
-        public void log(String log) {
+        public void log(String ts, String log) {
             synchronized (logLock) {
-                this.logs.add(log);
+                this.logs.put(ts, log);
             }
         }
 
@@ -490,7 +490,11 @@ public class APIController {
             }
             HashSet<String> logMessages;
             synchronized (this.logLock) {
-                logMessages = new HashSet<>(this.logs);
+                SortedSet<String> keys = new TreeSet<>(logs.keySet());
+                logMessages = new HashSet<>();
+                for (String key : keys) {
+                    logMessages.add(logs.get(key));
+                }
             }
             StringBuilder ret = new StringBuilder();
             ret.append("{");

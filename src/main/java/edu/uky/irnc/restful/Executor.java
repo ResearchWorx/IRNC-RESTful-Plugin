@@ -51,7 +51,7 @@ class Executor extends CExecutor {
                 if (listenerForLog != null) {
                     logger.trace("Found relevant QueueListener, adding log");
                     logger.debug("log: {}", msg.getParam("log"));
-                    listenerForLog.log(msg.getParam("log"));
+                    listenerForLog.log(msg.getParam("ts"), msg.getParam("log"));
                 } else
                     logger.debug("No QueueListener found matching given exchange");
                 break;
