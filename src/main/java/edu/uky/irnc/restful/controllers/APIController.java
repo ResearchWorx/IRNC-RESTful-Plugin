@@ -490,10 +490,9 @@ public class APIController {
             synchronized (this.resultsLock) {
                 resultMessages = new HashSet<>(this.results);
             }
-            HashSet<String> logMessages;
+            HashSet<String> logMessages = new HashSet<>();
             synchronized (this.logLock) {
                 SortedSet<String> keys = new TreeSet<>(logs.keySet());
-                logMessages = new HashSet<>();
                 for (String key : keys) {
                     logMessages.add(logs.get(key));
                 }
