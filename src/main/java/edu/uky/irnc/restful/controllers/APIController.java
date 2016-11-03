@@ -269,6 +269,8 @@ public class APIController {
             QueueListener listener = listeners.get(amqp_exchange);
             if (listener != null) {
                 return Response.ok(listener.Results()).header("Access-Control-Allow-Origin", "*").build();
+            } else {
+                return Response.ok(listeners.keySet().toString()).header("Access-Control-Allow-Origin", "*").build();
             }
         } catch (Exception e) {
             e.printStackTrace();
