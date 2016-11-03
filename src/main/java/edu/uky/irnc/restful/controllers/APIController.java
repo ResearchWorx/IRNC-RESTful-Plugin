@@ -492,7 +492,8 @@ public class APIController {
             }
             HashSet<String> logMessages = new HashSet<>();
             synchronized (this.logLock) {
-                SortedSet<String> keys = new TreeSet<>(logs.keySet());
+                List<String> keys = new ArrayList<>(logs.keySet());
+                Collections.sort(keys);
                 for (String key : keys) {
                     logMessages.add(logs.get(key));
                 }

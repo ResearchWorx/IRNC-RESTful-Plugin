@@ -50,7 +50,7 @@ class Executor extends CExecutor {
                 APIController.QueueListener listenerForLog = APIController.listeners.get(msg.getParam("exchange"));
                 if (listenerForLog != null) {
                     logger.trace("Found relevant QueueListener, adding log");
-                    logger.debug("log: {}", msg.getParam("log"));
+                    logger.debug("ts: {}, log: {}", msg.getParam("ts"), msg.getParam("log"));
                     listenerForLog.log(msg.getParam("ts"), msg.getParam("log"));
                 } else
                     logger.debug("No QueueListener found matching given exchange");
