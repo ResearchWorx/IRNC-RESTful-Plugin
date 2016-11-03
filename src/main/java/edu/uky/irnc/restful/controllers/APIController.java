@@ -142,7 +142,7 @@ public class APIController {
                 if (program.equals("perfSONAR_Throughput")) {
                     if (parsedArgs.length >= 4) {
                         Calendar temp = Calendar.getInstance();
-                        temp.add(Calendar.SECOND, Integer.parseInt(parsedArgs[3]));
+                        temp.add(Calendar.SECOND, 60 + Integer.parseInt(parsedArgs[3]));
                         end = temp.getTime();
                     }
                     for (int i = 1; i < parsedArgs.length; i++) {
