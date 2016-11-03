@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Path("API")
 public class APIController {
     public static ConcurrentHashMap<String, QueueListener> listeners = new ConcurrentHashMap<>();
-    public static ConcurrentHashMap<String, KanonWatcher> watchers = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, KanonWatcher> watchers = new ConcurrentHashMap<>();
     private static Plugin plugin;
     private static CLogger logger;
 
@@ -134,30 +134,42 @@ public class APIController {
                 SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-zzz");
                 String[] parsedArgs = args.split(" ");
                 String program = "";
-                if (parsedArgs.length >= 0)
+                if (parsedArgs.length >= 1)
                     program = parsedArgs[0];
-                Date start = new Date();
-                if (parsedArgs.length >= 1) {
-                    try {
-                        start = formatter.parse(parsedArgs[1] + "-EDT");
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-                }
-                Date end = new Date();
-                if (parsedArgs.length >= 2) {
-                    try {
-                        end = formatter.parse(parsedArgs[2] + "-EDT");
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-                }
                 String programArgs = "";
-                if (parsedArgs.length >= 3) {
-                    for (int i = 3; i < parsedArgs.length; i++) {
+                Date start = new Date();
+                Date end = new Date();
+                if (program.equals("perfSONAR_Throughput")) {
+                    if (parsedArgs.length >= 4) {
+                        Calendar temp = Calendar.getInstance();
+                        temp.add(Calendar.SECOND, Integer.parseInt(parsedArgs[3]));
+                        end = temp.getTime();
+                    }
+                    for (int i = 1; i < parsedArgs.length; i++) {
                         programArgs += parsedArgs[i] + " ";
                     }
                     programArgs = programArgs.trim();
+                } else {
+                    if (parsedArgs.length >= 2) {
+                        try {
+                            start = formatter.parse(parsedArgs[1] + "-EDT");
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if (parsedArgs.length >= 3) {
+                        try {
+                            end = formatter.parse(parsedArgs[2] + "-EDT");
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if (parsedArgs.length >= 4) {
+                        for (int i = 3; i < parsedArgs.length; i++) {
+                            programArgs += parsedArgs[i] + " ";
+                        }
+                        programArgs = programArgs.trim();
+                    }
                 }
                 String amqp_server = "128.163.217.97";
                 String amqp_port = "5672";
@@ -571,7 +583,7 @@ public class APIController {
         }
     }
 
-    public static class KanonWatcher implements Runnable {
+    private static class KanonWatcher implements Runnable {
         private String id;
         private String pluginID;
         private String command;
@@ -610,6 +622,31 @@ public class APIController {
             }
         }
 
+        String Results() {
+            HashSet<String> logMessages;
+            synchronized (this.logLock) {
+                logMessages = new HashSet<>(this.logs);
+            }
+            StringBuilder ret = new StringBuilder();
+            ret.append("{");
+            ret.append("\"state\":\"");
+            ret.append(this.getState());
+            ret.append("\",\"issued\":\"");
+            ret.append(this.issued);
+            ret.append("\",\"logs\":[");
+            for (String logMessage : logMessages) {
+                ret.append("\"");
+                ret.append(logMessage);
+                ret.append("\",");
+            }
+            if (logMessages.size() > 0) {
+                ret.deleteCharAt(ret.lastIndexOf(","));
+            }
+            ret.append("]");
+            ret.append("}");
+            return ret.toString();
+        }
+
         private String getState() {
             if (alive)
                 return "Running";
@@ -620,7 +657,7 @@ public class APIController {
         String getListing() {
             return "{\"id\":\"" + id +
                     "\",\"state\":\"" + getState() +
-                    "\",\"started\":\"" + issued +
+                    "\",\"issued\":\"" + issued +
                     "\",\"command\":\"" + command + "\"}";
         }
 
