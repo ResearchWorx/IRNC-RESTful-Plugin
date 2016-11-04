@@ -7,6 +7,7 @@ import com.rabbitmq.client.QueueingConsumer;
 import com.researchworx.cresco.library.messaging.MsgEvent;
 import com.researchworx.cresco.library.utilities.CLogger;
 import edu.uky.irnc.restful.Plugin;
+import org.apache.commons.lang.StringEscapeUtils;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -502,7 +503,7 @@ public class APIController {
                 List<Long> keys = new ArrayList<>(logs.keySet());
                 Collections.sort(keys);
                 for (Long key : keys) {
-                    logMessages.add(logs.get(key));
+                    logMessages.add(StringEscapeUtils.escapeJavaScript(logs.get(key)));
                 }
             }
             StringBuilder ret = new StringBuilder();
