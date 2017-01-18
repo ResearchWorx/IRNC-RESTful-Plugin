@@ -160,14 +160,14 @@ public class APIController {
                 } else {
                     if (parsedArgs.length >= 2) {
                         try {
-                            start = formatter.parse(parsedArgs[1] + "-EDT");
+                            start = formatter.parse(parsedArgs[1] + "-UTC");
                         } catch (ParseException e) {
                             e.printStackTrace();
                         }
                     }
                     if (parsedArgs.length >= 3) {
                         try {
-                            end = formatter.parse(parsedArgs[2] + "-EDT");
+                            end = formatter.parse(parsedArgs[2] + "-UTC");
                         } catch (ParseException e) {
                             e.printStackTrace();
                         }
