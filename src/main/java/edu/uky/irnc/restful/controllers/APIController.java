@@ -139,6 +139,8 @@ public class APIController {
             }
         } else {
             try {
+                SimpleDateFormat getTimeZone = new SimpleDateFormat("zzz");
+                String timezone = getTimeZone.format(new Date());
                 SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-zzz");
                 String[] parsedArgs = args.split(" ");
                 String program = "";
@@ -160,14 +162,14 @@ public class APIController {
                 } else {
                     if (parsedArgs.length >= 2) {
                         try {
-                            start = formatter.parse(parsedArgs[1] + "-UTC");
+                            start = formatter.parse(parsedArgs[1] + "-" + timezone);
                         } catch (ParseException e) {
                             e.printStackTrace();
                         }
                     }
                     if (parsedArgs.length >= 3) {
                         try {
-                            end = formatter.parse(parsedArgs[2] + "-UTC");
+                            end = formatter.parse(parsedArgs[2] + "-" + timezone);
                         } catch (ParseException e) {
                             e.printStackTrace();
                         }
@@ -272,7 +274,7 @@ public class APIController {
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
     public Response results(@PathParam("amqp_exchange") String amqp_exchange) {
         logger.trace("Call to results()");
-        logger.debug("amqp_exchange: ", amqp_exchange);
+        logger.debug("amqp_exchange: {}", amqp_exchange);
         try {
             QueueListener listener = listeners.get(amqp_exchange);
             if (listener != null) {
