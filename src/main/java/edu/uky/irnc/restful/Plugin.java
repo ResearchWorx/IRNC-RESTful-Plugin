@@ -1,6 +1,7 @@
 package edu.uky.irnc.restful;
 
 import com.google.auto.service.AutoService;
+import com.researchworx.cresco.library.core.WatchDog;
 import com.researchworx.cresco.library.plugin.core.CPlugin;
 import edu.uky.irnc.restful.controllers.APIController;
 import org.glassfish.grizzly.http.server.HttpServer;
