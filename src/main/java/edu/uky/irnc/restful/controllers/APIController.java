@@ -135,7 +135,9 @@ public class APIController {
                         ",requiresSudo=false" +
                         ",runCommand=" + args);
                 try {
+                    logger.error("SEND RPC");
                     MsgEvent response = plugin.sendRPC(enable);
+                    logger.error("REC RPC");
                     if (response != null)
                         watcher.setPluginID(response.getParam("plugin"));
                     return Response.ok(watcherID).header("Access-Control-Allow-Origin", "*").build();
