@@ -126,7 +126,7 @@ public class APIController {
                 enable.setParam("watchdogtimer", "5000");
                 enable.setParam("action", "add");
                 String watcherID = java.util.UUID.randomUUID().toString();
-                KanonWatcher watcher = new KanonWatcher(watcherID, args);
+                KanonWatcher watcher = new KanonWatcher(watcherID, args.substring(args.indexOf(" ") + 1));
                 new Thread(watcher).start();
                 watchers.put(watcherID, watcher);
                 enable.setParam("configparams", "pluginname=executor-plugin" +
