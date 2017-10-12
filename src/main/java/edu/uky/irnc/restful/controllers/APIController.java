@@ -136,7 +136,9 @@ public class APIController {
                         ",runCommand=" + args);
                 try {
                     logger.error("SEND RPC");
-                    MsgEvent response = plugin.sendRPC(enable);
+                    //MsgEvent response = plugin.sendRPC(enable);
+                    plugin.sendMsgEvent(enable);
+                    MsgEvent response = enable;
                     logger.error("REC RPC");
                     if (response != null)
                         watcher.setPluginID(response.getParam("plugin"));
