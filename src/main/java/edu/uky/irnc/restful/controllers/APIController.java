@@ -56,6 +56,7 @@ public class APIController {
             enable.setParam("src_plugin", plugin.getPluginID());
             enable.setParam("dst_region", plugin.getRegion());
             enable.setParam("dst_agent", plugin.getAgent());
+            enable.setParam("watchdogtimer", "5000");
             enable.setParam("action", "enable");
             enable.setParam("configparams", "pluginname=executor-plugin" +
                     ",jarfile=executor/target/executor-plugin-0.1.0.jar" +
@@ -83,6 +84,7 @@ public class APIController {
             enable.setParam("src_plugin", plugin.getPluginID());
             enable.setParam("dst_region", plugin.getRegion());
             enable.setParam("dst_agent", plugin.getAgent());
+            enable.setParam("watchdogtimer", "5000");
             enable.setParam("action", "enable");
             enable.setParam("configparams", "pluginname=executor-plugin" +
                     ",jarfile=executor/target/executor-plugin-0.1.0.jar" +
@@ -112,6 +114,7 @@ public class APIController {
                 enable.setParam("src_plugin", plugin.getPluginID());
                 enable.setParam("dst_region", plugin.getRegion());
                 enable.setParam("dst_agent", plugin.getAgent());
+                enable.setParam("watchdogtimer", "5000");
                 enable.setParam("action", "enable");
                 String watcherID = java.util.UUID.randomUUID().toString();
                 KanonWatcher watcher = new KanonWatcher(watcherID, args);
@@ -192,6 +195,7 @@ public class APIController {
                 enable.setParam("src_plugin", plugin.getPluginID());
                 enable.setParam("dst_region", plugin.getRegion());
                 enable.setParam("dst_agent", plugin.getAgent());
+                enable.setParam("watchdogtimer", "5000");
                 enable.setParam("action", "enable");
                 String amqp_exchange = java.util.UUID.randomUUID().toString();
                 QueueListener listener = new QueueListener(amqp_server, amqp_login, amqp_password, amqp_exchange, program,
