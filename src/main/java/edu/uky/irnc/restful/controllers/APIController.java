@@ -120,7 +120,8 @@ public class APIController {
                 enable.setParam("src_agent", plugin.getAgent());
                 enable.setParam("src_plugin", plugin.getPluginID());
                 enable.setParam("dst_region", plugin.getRegion());
-                enable.setParam("dst_agent", plugin.getAgent());
+                //enable.setParam("dst_agent", plugin.getAgent());
+                enable.setParam("dst_agent", targetLocation);
                 enable.setParam("watchdogtimer", "5000");
                 enable.setParam("action", "enable");
                 String watcherID = java.util.UUID.randomUUID().toString();
@@ -201,7 +202,8 @@ public class APIController {
                 enable.setParam("src_agent", plugin.getAgent());
                 enable.setParam("src_plugin", plugin.getPluginID());
                 enable.setParam("dst_region", plugin.getRegion());
-                enable.setParam("dst_agent", plugin.getAgent());
+                //enable.setParam("dst_agent", plugin.getAgent());
+                enable.setParam("dst_agent", targetLocation);
                 enable.setParam("watchdogtimer", "5000");
                 enable.setParam("action", "enable");
                 String amqp_exchange = java.util.UUID.randomUUID().toString();
