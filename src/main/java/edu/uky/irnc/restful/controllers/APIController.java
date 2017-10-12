@@ -104,8 +104,15 @@ public class APIController {
     @Path("submit/{args:.*}")
     @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
     public Response submit(@PathParam("args") String args) {
-        logger.trace("Call to submit()");
-        if (args.startsWith("kanon")) {
+        logger.trace("Call to submit({})", args);
+        String[] parsedArgs = args.split(" ");
+        if (parsedArgs.length < 2) {
+            return Response.status(Response.Status.OK).entity("Invalid arguments issued: " + args)
+                    .header("Access-Control-Allow-Origin", "*").build();
+        }
+        String targetLocation = parsedArgs[0];
+        String program = parsedArgs[1];
+        if (program.equals("kanon")) {
             try {
                 MsgEvent enable = new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(),
                         plugin.getPluginID(), "Issuing command to start program");
@@ -145,39 +152,39 @@ public class APIController {
                 SimpleDateFormat getTimeZone = new SimpleDateFormat("zzz");
                 String timezone = getTimeZone.format(new Date());
                 SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-zzz");
-                String[] parsedArgs = args.split(" ");
-                String program = "";
-                if (parsedArgs.length >= 1)
-                    program = parsedArgs[0];
+                //String[] parsedArgs = args.split(" ");
+                //String program = "";
+                //if (parsedArgs.length >= 1)
+                //    program = parsedArgs[0];
                 String programArgs = "";
                 Date start = new Date();
                 Date end = new Date();
                 if (program.equals("perfSONAR_Throughput")) {
-                    if (parsedArgs.length >= 4) {
+                    if (parsedArgs.length >= 5) {
                         Calendar temp = Calendar.getInstance();
                         temp.add(Calendar.SECOND, 60 + Integer.parseInt(parsedArgs[3]));
                         end = temp.getTime();
                     }
-                    for (int i = 1; i < parsedArgs.length; i++) {
+                    for (int i = 2; i < parsedArgs.length; i++) {
                         programArgs += parsedArgs[i] + " ";
                     }
                     programArgs = programArgs.trim();
                 } else {
-                    if (parsedArgs.length >= 2) {
-                        try {
-                            start = formatter.parse(parsedArgs[1] + "-" + timezone);
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
-                    }
                     if (parsedArgs.length >= 3) {
                         try {
-                            end = formatter.parse(parsedArgs[2] + "-" + timezone);
+                            start = formatter.parse(parsedArgs[2] + "-" + timezone);
                         } catch (ParseException e) {
                             e.printStackTrace();
                         }
                     }
                     if (parsedArgs.length >= 4) {
+                        try {
+                            end = formatter.parse(parsedArgs[3] + "-" + timezone);
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if (parsedArgs.length >= 5) {
                         for (int i = 3; i < parsedArgs.length; i++) {
                             programArgs += parsedArgs[i] + " ";
                         }
