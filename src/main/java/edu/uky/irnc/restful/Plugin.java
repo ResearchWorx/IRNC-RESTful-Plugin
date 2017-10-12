@@ -15,13 +15,20 @@ import java.util.logging.Logger;
 
 @AutoService(CPlugin.class)
 public class Plugin extends CPlugin {
-    private static final String BASE_URI = "http://[::]:32001/";
     private HttpServer server;
 
     public void start() {
+
+
+
+
         setExec(new Executor(this));
-        server = startServer();
-        logger.info("Server up");
+        if(startServer()) {
+            logger.info("Server up");
+        } else {
+            logger.error("Unable to start Server");
+        }
+
     }
 
     @Override
@@ -36,17 +43,42 @@ public class Plugin extends CPlugin {
      * Starts Grizzly HTTP server exposing JAX-RS resources defined in this application.
      * @return Grizzly HTTP server.
      */
-    private HttpServer startServer() {
-        System.setProperty("com.mchange.v2.log.MLog", "com.mchange.v2.log.FallbackMLog");
-        System.setProperty("com.mchange.v2.log.FallbackMLog.DEFAULT_CUTOFF_LEVEL", "WARNING");
-        final OutputStream nullOutputStream = new OutputStream() { @Override public void write(int b) { } };
-        Logger.getLogger("").addHandler(new ConsoleHandler() {{ setOutputStream(nullOutputStream); }});
+    private Boolean startServer() {
+        Boolean isCreated = false;
+        try {
+            System.setProperty("com.mchange.v2.log.MLog", "com.mchange.v2.log.FallbackMLog");
+            System.setProperty("com.mchange.v2.log.FallbackMLog.DEFAULT_CUTOFF_LEVEL", "WARNING");
+            final OutputStream nullOutputStream = new OutputStream() {
+                @Override
+                public void write(int b) {
+                }
+            };
+            Logger.getLogger("").addHandler(new ConsoleHandler() {{
+                setOutputStream(nullOutputStream);
+            }});
 
-        final ResourceConfig rc = new ResourceConfig()
-                .register(APIController.class);
+            final ResourceConfig rc = new ResourceConfig()
+                    .register(APIController.class);
 
-        APIController.setPlugin(this);
-        return GrizzlyHttpServerFactory.createHttpServer(URI.create(BASE_URI), rc);
+            APIController.setPlugin(this);
+
+            String BASE_URI = null;
+            try {
+                BASE_URI = "http://[::]:32001/";
+                server = GrizzlyHttpServerFactory.createHttpServer(URI.create(BASE_URI), rc);
+            } catch(Exception e) {
+                //can't bind ipv6?
+                BASE_URI = "http://0.0.0.0:32001/";
+                server = GrizzlyHttpServerFactory.createHttpServer(URI.create(BASE_URI), rc);
+            }
+            if(server != null) {
+                isCreated = true;
+            }
+        }
+        catch(Exception ex) {
+            logger.error("startServer() Error " + ex.getMessage());
+        }
+        return isCreated;
     }
 
     public static void main(String[] args) {
