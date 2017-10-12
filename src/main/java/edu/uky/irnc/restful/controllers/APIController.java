@@ -120,9 +120,9 @@ public class APIController {
                 enable.setParam("src_agent", plugin.getAgent());
                 enable.setParam("src_plugin", plugin.getPluginID());
                 enable.setParam("dst_region", plugin.getRegion());
-                enable.setParam("dst_agent", plugin.getAgent());
+                //enable.setParam("dst_agent", plugin.getAgent());
                 logger.error("getAgent:" + plugin.getAgent() + " targetLocation:" + targetLocation);
-                //enable.setParam("dst_agent", targetLocation);
+                enable.setParam("dst_agent", targetLocation);
                 enable.setParam("watchdogtimer", "5000");
                 enable.setParam("action", "add");
                 String watcherID = java.util.UUID.randomUUID().toString();
@@ -137,9 +137,9 @@ public class APIController {
                 try {
                     logger.error("SEND RPC");
                     logger.error(enable.getParams().toString());
-                    //MsgEvent response = plugin.sendRPC(enable);
-                    plugin.sendMsgEvent(enable);
-                    MsgEvent response = enable;
+                    MsgEvent response = plugin.sendRPC(enable);
+                    //plugin.sendMsgEvent(enable);
+                    //MsgEvent response = enable;
                     logger.error("REC RPC");
                     if (response != null)
                         watcher.setPluginID(response.getParam("plugin"));
