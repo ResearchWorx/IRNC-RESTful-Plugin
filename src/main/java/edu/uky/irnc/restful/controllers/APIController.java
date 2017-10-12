@@ -124,7 +124,7 @@ public class APIController {
                 logger.error("getAgent:" + plugin.getAgent() + " targetLocation:" + targetLocation);
                 //enable.setParam("dst_agent", targetLocation);
                 enable.setParam("watchdogtimer", "5000");
-                enable.setParam("action", "enable");
+                enable.setParam("action", "add");
                 String watcherID = java.util.UUID.randomUUID().toString();
                 KanonWatcher watcher = new KanonWatcher(watcherID, args);
                 new Thread(watcher).start();
@@ -133,7 +133,7 @@ public class APIController {
                         ",jarfile=executor/target/executor-plugin-0.1.0.jar" +
                         ",dstPlugin=" + plugin.getPluginID() +
                         ",requiresSudo=false" +
-                        ",runCommand=" + args);
+                        ",runCommand=" + args.substring(args.indexOf(" ") + 1));
                 try {
                     logger.error("SEND RPC");
                     logger.error(enable.getParams().toString());
@@ -169,7 +169,7 @@ public class APIController {
                 if (program.equals("perfSONAR_Throughput")) {
                     if (parsedArgs.length >= 5) {
                         Calendar temp = Calendar.getInstance();
-                        temp.add(Calendar.SECOND, 60 + Integer.parseInt(parsedArgs[3]));
+                        temp.add(Calendar.SECOND, 60 + Integer.parseInt(parsedArgs[4]));
                         end = temp.getTime();
                     }
                     for (int i = 2; i < parsedArgs.length; i++) {
@@ -192,7 +192,7 @@ public class APIController {
                         }
                     }
                     if (parsedArgs.length >= 5) {
-                        for (int i = 3; i < parsedArgs.length; i++) {
+                        for (int i = 4; i < parsedArgs.length; i++) {
                             programArgs += parsedArgs[i] + " ";
                         }
                         programArgs = programArgs.trim();
@@ -211,7 +211,7 @@ public class APIController {
                 //enable.setParam("dst_agent", plugin.getAgent());
                 enable.setParam("dst_agent", targetLocation);
                 enable.setParam("watchdogtimer", "5000");
-                enable.setParam("action", "enable");
+                enable.setParam("action", "add");
                 String amqp_exchange = java.util.UUID.randomUUID().toString();
                 QueueListener listener = new QueueListener(amqp_server, amqp_login, amqp_password, amqp_exchange, program,
                         start, end, programArgs);
@@ -220,7 +220,7 @@ public class APIController {
                 enable.setParam("configparams", "pluginname=executor-plugin" +
                         ",jarfile=executor/target/executor-plugin-0.1.0.jar" +
                         ",dstPlugin=" + plugin.getPluginID() +
-                        ",runCommand=" + args.replaceAll(",", "\\,") + " " + amqp_server + " " + amqp_port + " " +
+                        ",runCommand=" + args.substring(args.indexOf(" ") + 1).replaceAll(",", "\\,") + " " + amqp_server + " " + amqp_port + " " +
                         amqp_login + " " + amqp_password + " " + amqp_exchange);
 
                 try {
