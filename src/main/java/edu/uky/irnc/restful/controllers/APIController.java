@@ -135,12 +135,10 @@ public class APIController {
                         ",requiresSudo=false" +
                         ",runCommand=" + args.substring(args.indexOf(" ") + 1));
                 try {
-                    logger.error("SEND RPC");
                     logger.error(enable.getParams().toString());
                     MsgEvent response = plugin.sendRPC(enable);
                     //plugin.sendMsgEvent(enable);
                     //MsgEvent response = enable;
-                    logger.error("REC RPC");
                     if (response != null)
                         watcher.setPluginID(response.getParam("plugin"));
                     return Response.ok(watcherID).header("Access-Control-Allow-Origin", "*").build();
@@ -224,7 +222,12 @@ public class APIController {
                         amqp_login + " " + amqp_password + " " + amqp_exchange);
 
                 try {
+                    logger.error(enable.getParams().toString());
+                    logger.error("RPC Send");
+
                     MsgEvent response = plugin.sendRPC(enable);
+
+                    logger.error("RPC Return");
                     if (response != null) {
                         listener.setPluginID(response.getParam("plugin"));
                     }
