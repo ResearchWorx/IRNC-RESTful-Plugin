@@ -136,6 +136,7 @@ public class APIController {
                         ",runCommand=" + args);
                 try {
                     logger.error("SEND RPC");
+                    logger.error(enable.getParams().toString());
                     //MsgEvent response = plugin.sendRPC(enable);
                     plugin.sendMsgEvent(enable);
                     MsgEvent response = enable;
