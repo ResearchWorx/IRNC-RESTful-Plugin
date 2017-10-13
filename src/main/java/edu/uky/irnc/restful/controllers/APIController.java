@@ -223,11 +223,7 @@ public class APIController {
 
                 try {
                     logger.error(enable.getParams().toString());
-                    logger.error("RPC Send");
-
                     MsgEvent response = plugin.sendRPC(enable);
-
-                    logger.error("RPC Return");
                     if (response != null) {
                         listener.setPluginID(response.getParam("plugin"));
                     }
