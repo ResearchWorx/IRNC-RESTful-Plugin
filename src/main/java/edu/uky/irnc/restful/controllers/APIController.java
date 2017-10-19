@@ -133,8 +133,8 @@ public class APIController {
         gPayload gpay = new gPayload(gNodes,gEdges);
         gpay.pipeline_id = "0";
         gpay.pipeline_name = "demo_pipeline";
-
-        return gson.toJson(gpay);
+        String json = gson.toJson(gpay);
+        return json;
 
     }
 

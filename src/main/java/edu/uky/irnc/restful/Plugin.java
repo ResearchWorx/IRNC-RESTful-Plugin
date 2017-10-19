@@ -28,7 +28,6 @@ public class Plugin extends CPlugin {
         } else {
             logger.error("Unable to start Server");
         }
-
     }
 
     @Override
