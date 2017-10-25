@@ -30,6 +30,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @SuppressWarnings("unused")
 @Path("API")
 public class APIController {
+
+    public static ConcurrentHashMap<String, MsgEvent> activePlugins = new ConcurrentHashMap<>();
     public static ConcurrentHashMap<String, QueueListener> listeners = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<String, KanonWatcher> watchers = new ConcurrentHashMap<>();
     private static Plugin plugin;
@@ -243,6 +245,8 @@ public class APIController {
                 try {
                     logger.error(enable.getParams().toString());
                     MsgEvent response = plugin.sendRPC(enable);
+
+
                     if (response != null) {
                         listener.setPluginID(response.getParam("plugin"));
                     }

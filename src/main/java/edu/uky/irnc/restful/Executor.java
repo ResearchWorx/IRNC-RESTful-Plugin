@@ -32,6 +32,9 @@ class Executor extends CExecutor {
                     listenerToDelete.done();
                 } else
                     logger.debug("No QueueListener found matching given exchange");
+                //todo remove plugin
+                logger.error("Remove inode_id:" + msg.getParam("inode_id") + " resource_id:" + msg.getParam("resource_id"));
+                /*
                 Map<String, String> params = new HashMap<>();
                 params.put("src_region", plugin.getRegion());
                 params.put("src_agent", plugin.getAgent());
@@ -42,6 +45,7 @@ class Executor extends CExecutor {
                 params.put("plugin", msg.getParam("src_plugin"));
                 plugin.sendMsgEvent(new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(),
                         plugin.getAgent(), plugin.getPluginID(), params));
+                */
                 break;
             case "execution_log":
                 logger.info("Command 'execution_log' received");
