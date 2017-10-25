@@ -121,6 +121,10 @@ public class APIController {
         n0Params.put("runCommand", runcommand);
         n0Params.put("location",targetLocation);
         n0Params.put("watchdogtimer", "5000");
+        //add information related to issuing plugin
+        n0Params.put("dstRegion", plugin.getRegion());
+        n0Params.put("dstAgent", plugin.getAgent());
+        n0Params.put("dstPlugin", plugin.getPluginID());
 
 
         List<gNode> gNodes = new ArrayList<>();
