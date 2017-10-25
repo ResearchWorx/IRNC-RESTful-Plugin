@@ -568,7 +568,13 @@ public class APIController {
                     return;
                 }
                 try {
-                    rx_channel.exchangeDeclare(this.amqp_exchange, "direct");
+                    //rx_channel.exchangeDeclare(this.amqp_exchange, "direct");
+                    rx_channel.exchangeDeclare(this.amqp_exchange, "fanout", false, false, true, null);
+
+                    //exchangeDeclare(java.lang.String exchange, java.lang.String type, boolean passive, boolean durable, boolean autoDelete, java.util.Map<java.lang.String,java.lang.Object> arguments)
+
+
+
                 } catch (IOException e) {
                     logger.error("Failed to declare exchange... {}", e.getMessage());
                     return;
