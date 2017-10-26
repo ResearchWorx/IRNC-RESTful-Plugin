@@ -251,10 +251,11 @@ public class APIController {
                     gPayload me = gson.fromJson(gpipelineString, gPayload.class);
 
 
-                    getPipelineStatus(me.pipeline_id);
 
-
-
+                    for(int i = 0; i < 10; i++) {
+                        getPipelineStatus(me.pipeline_id);
+                        Thread.sleep(1000);
+                    }
 
 
 
