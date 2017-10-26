@@ -257,6 +257,8 @@ public class APIController {
                     String pipeline_id = response.getParam("gpipeline_id");
                     logger.error("Main  pipeline_id: " + pipeline_id);
 
+                    Thread.sleep(3000);
+
                     int status = getPipelineStatus(pipeline_id);
 
 
@@ -267,7 +269,7 @@ public class APIController {
                         }
                         status = getPipelineStatus(pipeline_id);
                         logger.error("pipeline_id: " + pipeline_id + " status:" + status);
-                        Thread.sleep(1000);
+                        Thread.sleep(5000);
                     }
 
 
