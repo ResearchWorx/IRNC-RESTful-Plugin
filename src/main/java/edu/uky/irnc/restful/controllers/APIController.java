@@ -259,11 +259,12 @@ public class APIController {
 
                     int status = getPipelineStatus(pipeline_id);
 
-                    if(status == -1) {
-                        logger.error("Problem with Pipeline Check ! Status -1");
-                    }
 
-                    while(status != 10) {
+
+                    while((status != 10) || (status != -1)) {
+                        if(status == -1) {
+                            logger.error("Problem with Pipeline Check ! Status -1");
+                        }
                         status = getPipelineStatus(pipeline_id);
                         logger.error("pipeline_id: " + pipeline_id + " status:" + status);
                         Thread.sleep(1000);
