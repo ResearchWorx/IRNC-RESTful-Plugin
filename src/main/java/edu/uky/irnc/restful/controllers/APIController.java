@@ -285,7 +285,7 @@ public class APIController {
     private int getPipelineStatus(String pipeline_id) {
         int status = -1;
         try {
-            MsgEvent pipelineCheck = new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(),
+            MsgEvent pipelineCheck = new MsgEvent(MsgEvent.Type.EXEC, plugin.getRegion(), plugin.getAgent(),
                     plugin.getPluginID(), "Checking Pipeline");
             pipelineCheck.setParam("src_region", plugin.getRegion());
             pipelineCheck.setParam("src_agent", plugin.getAgent());
