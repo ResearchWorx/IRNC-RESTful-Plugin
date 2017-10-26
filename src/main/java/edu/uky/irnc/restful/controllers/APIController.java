@@ -247,6 +247,8 @@ public class APIController {
                     MsgEvent response = plugin.sendRPC(enable);
 
 
+
+
                     if (response != null) {
                         listener.setPluginID(response.getParam("plugin"));
                     }
