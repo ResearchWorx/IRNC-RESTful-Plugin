@@ -1,18 +1,14 @@
 package edu.uky.irnc.restful;
 
-import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class pipelineStatus implements Serializable
-{
+public class pipelineStatus {
 
     @SerializedName("pipelines")
     @Expose
-    private List<Pipeline> pipelines = new ArrayList<Pipeline>();
-    private final static long serialVersionUID = 898847269549373332L;
+    private List<Pipeline> pipelines = null;
 
     /**
      * No args constructor for use in serialization

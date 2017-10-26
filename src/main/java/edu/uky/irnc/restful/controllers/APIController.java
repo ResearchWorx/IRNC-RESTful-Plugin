@@ -261,7 +261,7 @@ public class APIController {
 
 
 
-                    while((status != 10) || (status != -1)) {
+                    while(!(status == 10) || (status != -1)) {
                         if(status == -1) {
                             logger.error("Problem with Pipeline Check ! Status -1");
                         }
@@ -324,12 +324,14 @@ public class APIController {
             String pipelineinfo = response.getCompressedParam("pipelineinfo");
             logger.error("pipelineinfo: " + pipelineinfo);
 
-            List<pipelineStatus> pStatus = pipelineStatusFromJson(pipelineinfo);
+            //List<pipelineStatus> pStatus = pipelineStatusFromJson(pipelineinfo);
+
+            pipelineStatus pStatus = new Gson().fromJson(pipelineinfo,pipelineStatus.class);
 
             logger.error("pStatus: ");
 
-            List<Pipeline> pPipeline = pStatus.get(0).getPipelines();
-            status = Integer.parseInt(pPipeline.get(0).getStatusCode());
+            //List<Pipeline> pPipeline = pStatus.getPipelines().get(0).getStatusCode());
+            status = Integer.parseInt(pStatus.getPipelines().get(0).getStatusCode());
 
         } catch(Exception ex) {
             logger.error("getPipelineStatus() Error " + ex.toString());

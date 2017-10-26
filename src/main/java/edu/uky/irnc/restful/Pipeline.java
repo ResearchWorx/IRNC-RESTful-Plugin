@@ -1,11 +1,8 @@
 package edu.uky.irnc.restful;
-
-import java.io.Serializable;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class Pipeline implements Serializable
-{
+public class Pipeline {
 
     @SerializedName("tenant_id")
     @Expose
@@ -22,7 +19,6 @@ public class Pipeline implements Serializable
     @SerializedName("pipeline_name")
     @Expose
     private String pipelineName;
-    private final static long serialVersionUID = -5009319525541031509L;
 
     /**
      * No args constructor for use in serialization
