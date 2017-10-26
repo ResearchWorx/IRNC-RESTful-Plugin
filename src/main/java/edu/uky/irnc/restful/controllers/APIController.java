@@ -304,7 +304,7 @@ public class APIController {
 
             //pipelineinfo
             MsgEvent response = plugin.sendRPC(pipelineCheck);
-            String pipelineinfo = response.getParam("pipelineinfo");
+            String pipelineinfo = response.getCompressedParam("pipelineinfo");
             logger.error(pipelineinfo);
 
         } catch(Exception ex) {
