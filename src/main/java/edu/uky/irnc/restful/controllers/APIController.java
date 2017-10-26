@@ -255,7 +255,6 @@ public class APIController {
                     //gPayload me = gson.fromJson(gpipelineString, gPayload.class);
 
                     String pipeline_id = response.getParam("gpipeline_id");
-                    logger.error("Main  pipeline_id: " + pipeline_id);
 
                     Thread.sleep(3000);
 
@@ -271,8 +270,6 @@ public class APIController {
                         logger.error("pipeline_id: " + pipeline_id + " status:" + status);
                         Thread.sleep(5000);
                     }
-
-
 
 /*
                     for(gNode node : me.nodes) {
