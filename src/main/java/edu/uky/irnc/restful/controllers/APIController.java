@@ -261,7 +261,7 @@ public class APIController {
 
 
 
-                    while(!(status == 10) || (status != -1)) {
+                    while(!(status == 10) && (status != -1)) {
                         if(status == -1) {
                             logger.error("Problem with Pipeline Check ! Status -1");
                         }
