@@ -243,10 +243,9 @@ public class APIController {
 */
 
                 try {
-                    logger.error(enable.getParams().toString());
                     MsgEvent response = plugin.sendRPC(enable);
 
-
+                    logger.error(response.getParams().toString());
 
 
                     if (response != null) {
