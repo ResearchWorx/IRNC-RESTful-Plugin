@@ -245,26 +245,26 @@ public class APIController {
                 try {
                     MsgEvent response = plugin.sendRPC(enable);
 
-                    String  gpipelineString = response.getCompressedParam("action_gpipeline");
+                    //String  gpipelineString = response.getCompressedParam("action_gpipeline");
 
-                    Gson gson = new GsonBuilder().create();
-                    gPayload me = gson.fromJson(gpipelineString, gPayload.class);
+                    //Gson gson = new GsonBuilder().create();
+                    //gPayload me = gson.fromJson(gpipelineString, gPayload.class);
 
-
-                    logger.error("Main  pipeline_id: " + me.pipeline_id);
+                    String pipeline_id = response.getParam("gpipeline_id");
+                    logger.error("Main  pipeline_id: " + pipeline_id);
 
                     for(int i = 0; i < 10; i++) {
-                        getPipelineStatus(me.pipeline_id);
+                        getPipelineStatus(pipeline_id);
                         Thread.sleep(1000);
                     }
 
 
 
-
+/*
                     for(gNode node : me.nodes) {
                         logger.error("node_id: " + node.node_id + " node_name:" + node.node_name + " node: " + node.params);
-                    }
-
+                   }
+                   */
                     //logger.error(response.getParams().toString());
 
 
