@@ -2,6 +2,7 @@ package edu.uky.irnc.restful.controllers;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
@@ -11,7 +12,9 @@ import com.researchworx.cresco.library.utilities.CLogger;
 import edu.uky.irnc.restful.CADL.gEdge;
 import edu.uky.irnc.restful.CADL.gNode;
 import edu.uky.irnc.restful.CADL.gPayload;
+import edu.uky.irnc.restful.Pipeline;
 import edu.uky.irnc.restful.Plugin;
+import edu.uky.irnc.restful.pipelineStatus;
 import org.apache.commons.lang.StringEscapeUtils;
 
 import javax.ws.rs.GET;
@@ -22,6 +25,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -253,8 +257,15 @@ public class APIController {
                     String pipeline_id = response.getParam("gpipeline_id");
                     logger.error("Main  pipeline_id: " + pipeline_id);
 
-                    for(int i = 0; i < 10; i++) {
-                        getPipelineStatus(pipeline_id);
+                    int status = getPipelineStatus(pipeline_id);
+
+                    if(status == -1) {
+                        logger.error("Problem with Pipeline Check ! Status -1");
+                    }
+
+                    while(status != 10) {
+                        status = getPipelineStatus(pipeline_id);
+                        logger.error("pipeline_id: " + pipeline_id + " status:" + status);
                         Thread.sleep(1000);
                     }
 
@@ -310,13 +321,26 @@ public class APIController {
             //pipelineinfo
             MsgEvent response = plugin.sendRPC(pipelineCheck);
             String pipelineinfo = response.getCompressedParam("pipelineinfo");
-            logger.error(pipelineinfo);
+            List<pipelineStatus> pStatus = pipelineStatusFromJson(pipelineinfo);
+            List<Pipeline> pPipeline = pStatus.get(0).getPipelines();
+            status = Integer.parseInt(pPipeline.get(0).getStatusCode());
 
         } catch(Exception ex) {
             logger.error("getPipelineStatus() Error " + ex.toString());
         }
 
         return status;
+    }
+
+    private List<pipelineStatus> pipelineStatusFromJson(String json) {
+
+        Type listType = new TypeToken<ArrayList<pipelineStatus>>(){}.getType();
+
+        List<pipelineStatus> yourClassList = new Gson().fromJson(json, listType);
+
+        //return gson.fromJson(json, Payload.class);
+        return yourClassList;
+
     }
 
 
