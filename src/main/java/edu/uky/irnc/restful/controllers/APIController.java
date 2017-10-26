@@ -245,7 +245,16 @@ public class APIController {
                 try {
                     MsgEvent response = plugin.sendRPC(enable);
 
-                    logger.error(response.getParams().toString());
+                    String  gpipelineString = response.getCompressedParam("action_gpipeline");
+
+                    Gson gson = new GsonBuilder().create();
+                    gPayload me = gson.fromJson(gpipelineString, gPayload.class);
+
+                    for(gNode node : me.nodes) {
+                        logger.error("node_id: " + node.node_id + " node_name:" + node.node_name + " node: " + node.params);
+                    }
+
+                    //logger.error(response.getParams().toString());
 
 
                     if (response != null) {
