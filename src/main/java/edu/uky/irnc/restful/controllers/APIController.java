@@ -250,6 +250,15 @@ public class APIController {
                     Gson gson = new GsonBuilder().create();
                     gPayload me = gson.fromJson(gpipelineString, gPayload.class);
 
+
+                    getPipelineStatus(me.pipeline_id);
+
+
+
+
+
+
+
                     for(gNode node : me.nodes) {
                         logger.error("node_id: " + node.node_id + " node_name:" + node.node_name + " node: " + node.params);
                     }
@@ -271,6 +280,38 @@ public class APIController {
                         .header("Access-Control-Allow-Origin", "*").build();
             }
 
+    }
+
+    private int getPipelineStatus(String pipeline_id) {
+        int status = -1;
+        try {
+            MsgEvent pipelineCheck = new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(),
+                    plugin.getPluginID(), "Checking Pipeline");
+            pipelineCheck.setParam("src_region", plugin.getRegion());
+            pipelineCheck.setParam("src_agent", plugin.getAgent());
+            pipelineCheck.setParam("src_plugin", plugin.getPluginID());
+            pipelineCheck.setParam("dst_region", plugin.getRegion());
+            //enable.setParam("dst_agent", plugin.getAgent());
+            //enable.setParam("dst_agent", targetLocation);
+
+            pipelineCheck.setParam("globalcmd", Boolean.TRUE.toString());
+            pipelineCheck.setParam("action", "getgpipelinestatus");
+            pipelineCheck.setParam("action_pipeline",pipeline_id);
+
+            //Gson gson = new GsonBuilder().create();
+            //gPayload me = gson.fromJson(gpipelineString, gPayload.class);
+
+
+            //pipelineinfo
+            MsgEvent response = plugin.sendRPC(pipelineCheck);
+            String pipelineinfo = response.getParam("pipelineinfo");
+            logger.error(pipelineinfo);
+
+        } catch(Exception ex) {
+            logger.error("getPipelineStatus() Error " + ex.toString());
+        }
+
+        return status;
     }
 
 
