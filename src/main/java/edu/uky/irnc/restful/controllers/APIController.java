@@ -251,6 +251,7 @@ public class APIController {
                     gPayload me = gson.fromJson(gpipelineString, gPayload.class);
 
 
+                    logger.error("Main  pipeline_id: " + me.pipeline_id);
 
                     for(int i = 0; i < 10; i++) {
                         getPipelineStatus(me.pipeline_id);
@@ -286,6 +287,9 @@ public class APIController {
     private int getPipelineStatus(String pipeline_id) {
         int status = -1;
         try {
+
+            logger.error("getPipelineStatus() pipeline_id: " + pipeline_id);
+
             MsgEvent pipelineCheck = new MsgEvent(MsgEvent.Type.EXEC, plugin.getRegion(), plugin.getAgent(),
                     plugin.getPluginID(), "Checking Pipeline");
             pipelineCheck.setParam("src_region", plugin.getRegion());
