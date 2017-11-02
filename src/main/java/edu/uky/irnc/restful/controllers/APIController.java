@@ -21,10 +21,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.DatatypeConverter;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.reflect.Type;
 import java.net.URLDecoder;
 import java.text.ParseException;
@@ -144,6 +141,10 @@ public class APIController {
             logger.info(gson.toJson(app));
         } catch(Exception ex) {
             logger.error("CADL create error: " + ex.getMessage());
+            StringWriter sw = new StringWriter();
+            ex.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+            logger.error(exceptionAsString);
         }
 
         List<gNode> gNodes = new ArrayList<>();
