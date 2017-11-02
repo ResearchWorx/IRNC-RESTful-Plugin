@@ -3,6 +3,7 @@ package edu.uky.irnc.restful.controllers;
 import edu.uky.irnc.restful.CADL.gEdge;
 import edu.uky.irnc.restful.CADL.gNode;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -23,7 +24,9 @@ public class mApp {
 	  }
 	  public mApp()
 	  {
-		  
+		this.nodes = new ArrayList<>();
+		  this.status_code = 1;
+		  this.status_desc = "Record Created";
 	  }
 	  
 	}
