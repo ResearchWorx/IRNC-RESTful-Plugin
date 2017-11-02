@@ -283,8 +283,26 @@ public class APIController {
 
                     if (response != null) {
                         listener.setPluginID(response.getParam("plugin"));
-                        logger.error("CODY: " + response.getParams());
+
+                        MsgEvent getpipeline = new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(),
+                                plugin.getPluginID(), "Issuing command to start program");
+                        getpipeline.setParam("src_region", plugin.getRegion());
+                        getpipeline.setParam("src_agent", plugin.getAgent());
+                        getpipeline.setParam("src_plugin", plugin.getPluginID());
+                        getpipeline.setParam("dst_region", plugin.getRegion());
+
+                        getpipeline.setParam("globalcmd", Boolean.TRUE.toString());
+                        getpipeline.setParam("action", "getgpipeline");
+                        getpipeline.setParam("action_pipelineid",pipeline_id);
+
+                        MsgEvent getPipelineResponse = plugin.sendRPC(getpipeline);
+
+                        logger.error("CODY: " + getPipelineResponse.getParams());
+
+
                     }
+
+
                     return Response.ok(amqp_exchange).header("Access-Control-Allow-Origin", "*").build();
                 } catch (Exception ex) {
                     return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error")
