@@ -486,7 +486,7 @@ public class APIController {
         int status = -1;
         try {
 
-            logger.error("getPipelineStatus() pipeline_id: " + pipeline_id);
+            //logger.error("getPipelineStatus() pipeline_id: " + pipeline_id);
 
             MsgEvent pipelineCheck = new MsgEvent(MsgEvent.Type.EXEC, plugin.getRegion(), plugin.getAgent(),
                     plugin.getPluginID(), "Checking Pipeline");
