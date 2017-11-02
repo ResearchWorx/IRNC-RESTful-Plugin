@@ -322,26 +322,16 @@ public class APIController {
                             MsgEvent getAgentResponse = plugin.sendRPC(getAgent);
 
                             String isassignmentinfo = getAgentResponse.getCompressedParam("isassignmentinfo");
-                            String isassignmentresourceinfo = getAgentResponse.getCompressedParam("isassignmentresourceinfo");
 
                             logger.info("info: " + isassignmentinfo);
-                            logger.info("rinfo: " + isassignmentresourceinfo);
 
                             Gson gson = new Gson();
                             Type stringStringMap = new TypeToken<Map<String, String>>(){}.getType();
                             Map<String,String> map = gson.fromJson(isassignmentinfo, stringStringMap);
-                            Map<String,String> map2 = gson.fromJson(isassignmentresourceinfo, stringStringMap);
 
                             for (Map.Entry<String, String> entry : map.entrySet()) {
                                 String key = entry.getKey();
                                 Object value = entry.getValue();
-                                logger.info("key: " + key + " value: " + value);
-                                // ...
-                            }
-
-                            for (Map.Entry<String, String> entry : map2.entrySet()) {
-                                String key = entry.getKey() + " 2";
-                                Object value = entry.getValue() + " 2";
                                 logger.info("key: " + key + " value: " + value);
                                 // ...
                             }
