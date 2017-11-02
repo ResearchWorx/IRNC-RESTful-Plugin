@@ -297,8 +297,14 @@ public class APIController {
 
                         MsgEvent getPipelineResponse = plugin.sendRPC(getpipeline);
 
-                        logger.error("CODY: " + getPipelineResponse.getParams());
+                        //logger.error("CODY: " + getPipelineResponse.getParams());
+                        String pipelineJSON = getPipelineResponse.getCompressedParam("gpipeline");
 
+                        gPayload gpay = gPayLoadFromJson(pipelineJSON);
+
+                        for(gNode node : gpay.nodes) {
+                            logger.error("CODY NODE:  " + node.node_id + " " + node.params);
+                        }
 
                     }
 
@@ -314,6 +320,21 @@ public class APIController {
                         .header("Access-Control-Allow-Origin", "*").build();
             }
 
+    }
+
+    public String JsonFromgPayLoad(gPayload gpay) {
+        Gson gson = new GsonBuilder().create();
+        //gPayload me = gson.fromJson(json, gPayload.class);
+        //logger.debug(p);
+        return gson.toJson(gpay);
+
+    }
+
+    public gPayload gPayLoadFromJson(String json) {
+        Gson gson = new GsonBuilder().create();
+        gPayload me = gson.fromJson(json, gPayload.class);
+        //logger.debug(p);
+        return me;
     }
 
     private int getPipelineStatus(String pipeline_id) {
