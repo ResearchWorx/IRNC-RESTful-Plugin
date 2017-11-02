@@ -17,14 +17,14 @@ import edu.uky.irnc.restful.Plugin;
 import edu.uky.irnc.restful.pipelineStatus;
 import org.apache.commons.lang.StringEscapeUtils;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.DatatypeConverter;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.net.URLDecoder;
 import java.text.ParseException;
@@ -133,6 +133,15 @@ public class APIController {
         n0Params.put("dstAgent", plugin.getAgent());
         n0Params.put("dstPlugin", plugin.getPluginID());
 
+//APP CONFIG
+
+        String command = "-c 0x3 -w 0000:44:00.0 -- -p 0x1 --config=\"(0,0,1)\" -- 60 10  4  11  12  20  21  23  16 ";
+        mApp app = new mApp();
+        //mNode(String type, String name, String commands)
+        mNode node = new mNode("netflow", "UK Netflow", command);
+        app.nodes.add(node);
+
+        logger.info(gson.toJson(app));
 
         List<gNode> gNodes = new ArrayList<>();
         gNodes.add(new gNode("dummy", "uk", "0", n0Params));
@@ -145,8 +154,41 @@ public class APIController {
         gpay.pipeline_id = "0";
         gpay.pipeline_name = "demo_pipeline";
         String json = gson.toJson(gpay);
+
+
         return json;
 
+    }
+
+
+    @POST
+    @Path("/add")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response crunchifyREST11(InputStream incomingData) {
+
+        StringBuilder crunchifyBuilder = new StringBuilder();
+        String returnString = null;
+        try {
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(incomingData));
+            String line = null;
+            while ((line = in.readLine()) != null) {
+                crunchifyBuilder.append(line);
+            }
+
+            String jsonString = crunchifyBuilder.toString();
+
+
+                returnString = "ok";
+
+        } catch (Exception e) {
+            logger.error("Error Parsing: - ");
+        }
+        logger.debug("Data Received: " + crunchifyBuilder.toString());
+
+        // return HTTP response 200 in case of success
+        //return Response.status(200).entity("woot2").build();
+        return Response.ok(returnString, MediaType.APPLICATION_JSON_TYPE).build();
     }
 
     @GET
@@ -349,67 +391,6 @@ public class APIController {
                             MsgEvent runProcessResponse = plugin.sendRPC(runProcess);
 
                             logger.info("CODY RUNRESPONSE:  " + node.node_id + " " + runProcessResponse.getParams());
-
-                            /*
-                            for (Map.Entry<String, String> entry : map.entrySet()) {
-                                String key = entry.getKey();
-                                Object value = entry.getValue();
-                                logger.info("key: " + key + " value: " + value);
-                                // ...
-                            }
-                            */
-                            //ce.setParam("isassignmentinfo",plugin.getGDB().getIsAssignedInfo(actionResourceId,actionInodeId,false));
-                            //ce.setParam("isassignmentresourceinfo",plugin.getGDB().getIsAssignedInfo(actionResourceId,actionInodeId,true));
-
-
-                            //logger.info("pnode: " + pnode);
-                            /*
-                            String pnode = getAgentResponse.getCompressedParam("pnode");
-
-                            Gson gson = new Gson();
-                            Type stringStringMap = new TypeToken<Map<String, String>>(){}.getType();
-                            Map<String,String> map = gson.fromJson(pnode, stringStringMap);
-
-                            for (Map.Entry<String, String> entry : map.entrySet()) {
-                                String key = entry.getKey();
-                                Object value = entry.getValue();
-                                // ...
-                            }
-
-                            String region = map.get("region");
-                            String agent = map.get("agent");
-                            String plugin = map.get("plugin");
-
-                            logger.info("pnode: " + pnode);
-                            logger.info("region: " + region + " agent:" + agent + " plugin:" + plugin);
-                            */
-
-                            /*
-                            String paramString = node.params.get("params");
-                            Map<String,String> params = getMapFromString(paramString,false);
-
-
-                            String region = params.get("dstRegion");
-                            String agent = params.get("dstAgent");
-                            String pluginId = params.get("dstPlugin");
-
-
-                            MsgEvent runProcess = new MsgEvent(MsgEvent.Type.EXEC, plugin.getRegion(), plugin.getAgent(),
-                                    plugin.getPluginID(), "Issuing command to start program");
-                            runProcess.setParam("src_region", plugin.getRegion());
-                            runProcess.setParam("src_agent", plugin.getAgent());
-                            runProcess.setParam("src_plugin", plugin.getPluginID());
-                            runProcess.setParam("dst_region", region);
-                            runProcess.setParam("dst_agent", agent);
-                            runProcess.setParam("dst_plugin", pluginId);
-                            runProcess.setParam("cmd", "run_process");
-
-                            logger.error("region: " + region + " agent:" + agent + " plugin:" + pluginId);
-
-                            MsgEvent runProcessResponse = plugin.sendRPC(runProcess);
-
-                            logger.error("CODY RUNRESPONSE:  " + node.node_id + " " + runProcessResponse.getParams());
-                            */
 
                         }
 
