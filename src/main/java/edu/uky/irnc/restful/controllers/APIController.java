@@ -321,7 +321,18 @@ public class APIController {
 
                             MsgEvent getAgentResponse = plugin.sendRPC(getAgent);
 
-                            logger.info("CODY: " + getAgentResponse.getParams());
+                            String pnode = getAgentResponse.getCompressedParam("pnode");
+
+                            Gson gson = new Gson();
+                            Type stringStringMap = new TypeToken<Map<String, String>>(){}.getType();
+                            Map<String,String> map = gson.fromJson(pnode, stringStringMap);
+
+                            String region = map.get("region");
+                            String agent = map.get("agent");
+                            String plugin = map.get("plugin");
+
+                            logger.info("region: " + region + " agent:" + agent + " plugin:" + plugin);
+
 
                             /*
                             String paramString = node.params.get("params");
