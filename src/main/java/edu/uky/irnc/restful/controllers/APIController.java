@@ -134,14 +134,17 @@ public class APIController {
         n0Params.put("dstPlugin", plugin.getPluginID());
 
 //APP CONFIG
+        try {
+            String command = "-c 0x3 -w 0000:44:00.0 -- -p 0x1 --config=\"(0,0,1)\" -- 60 10  4  11  12  20  21  23  16 ";
+            mApp app = new mApp();
+            //mNode(String type, String name, String commands)
+            mNode node = new mNode("netflow", "UK Netflow", command);
+            app.nodes.add(node);
 
-        String command = "-c 0x3 -w 0000:44:00.0 -- -p 0x1 --config=\"(0,0,1)\" -- 60 10  4  11  12  20  21  23  16 ";
-        mApp app = new mApp();
-        //mNode(String type, String name, String commands)
-        mNode node = new mNode("netflow", "UK Netflow", command);
-        app.nodes.add(node);
-
-        logger.info(gson.toJson(app));
+            logger.info(gson.toJson(app));
+        } catch(Exception ex) {
+            logger.error("CADL create error: " + ex.getMessage());
+        }
 
         List<gNode> gNodes = new ArrayList<>();
         gNodes.add(new gNode("dummy", "uk", "0", n0Params));
