@@ -256,19 +256,20 @@ public class APIController {
 
                     String pipeline_id = response.getParam("gpipeline_id");
 
-                    Thread.sleep(3000);
+                    //Thread.sleep(3000);
 
-                    int status = getPipelineStatus(pipeline_id);
+                    //int status = getPipelineStatus(pipeline_id);
+                    int status = -2;
 
 
 
                     while(!(status == 10) && (status != -1)) {
+                        Thread.sleep(3000);
                         if(status == -1) {
                             logger.error("Problem with Pipeline Check ! Status -1");
                         }
                         status = getPipelineStatus(pipeline_id);
                         logger.error("pipeline_id: " + pipeline_id + " status:" + status);
-                        Thread.sleep(5000);
                     }
 
 /*
@@ -279,8 +280,10 @@ public class APIController {
                     //logger.error(response.getParams().toString());
 
 
+
                     if (response != null) {
                         listener.setPluginID(response.getParam("plugin"));
+                        logger.error("CODY: " + response.getParams());
                     }
                     return Response.ok(amqp_exchange).header("Access-Control-Allow-Origin", "*").build();
                 } catch (Exception ex) {
