@@ -311,6 +311,14 @@ public class APIController {
 
                             logger.error("region: " + region + " agent:" + agent + " plugin:" + plugin);
 
+                            for (Map.Entry<String, String> entry : node.params.entrySet()) {
+                                String key = entry.getKey();
+                                String value = entry.getValue();
+                                logger.error("key: " + key + " value:" + value);
+                                // ...
+                            }
+
+
                         }
 
                     }
