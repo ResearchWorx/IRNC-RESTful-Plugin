@@ -284,7 +284,7 @@ public class APIController {
                     if (response != null) {
                         listener.setPluginID(response.getParam("plugin"));
 
-                        MsgEvent getpipeline = new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(),
+                        MsgEvent getpipeline = new MsgEvent(MsgEvent.Type.EXEC, plugin.getRegion(), plugin.getAgent(),
                                 plugin.getPluginID(), "Issuing command to start program");
                         getpipeline.setParam("src_region", plugin.getRegion());
                         getpipeline.setParam("src_agent", plugin.getAgent());
