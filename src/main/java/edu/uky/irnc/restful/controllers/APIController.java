@@ -343,11 +343,12 @@ public class APIController {
                             runProcess.setParam("dst_plugin", pluginId);
                             runProcess.setParam("cmd", "run_process");
 
-                            logger.error("region: " + region + " agent:" + agent + " plugin:" + pluginId);
+
+                            logger.info("Sending message to region: " + region + " agent:" + agent + " plugin:" + pluginId + " to start measurement.");
 
                             MsgEvent runProcessResponse = plugin.sendRPC(runProcess);
 
-                            logger.error("CODY RUNRESPONSE:  " + node.node_id + " " + runProcessResponse.getParams());
+                            logger.info("CODY RUNRESPONSE:  " + node.node_id + " " + runProcessResponse.getParams());
 
                             /*
                             for (Map.Entry<String, String> entry : map.entrySet()) {
