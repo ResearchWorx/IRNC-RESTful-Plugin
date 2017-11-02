@@ -16,14 +16,16 @@ public class mApp {
 
 	  public List<mNode> nodes;
 
-	  public mApp(List<mNode> nodes)
+	  public mApp(String name, List<mNode> nodes)
 	  {
+	  	this.name = name;
 		  this.nodes = nodes;
 		  this.status_code = 1;
 		  this.status_desc = "Record Created";
 	  }
-	  public mApp()
+	  public mApp(String name)
 	  {
+		  this.name = name;
 		this.nodes = new ArrayList<>();
 		  this.status_code = 1;
 		  this.status_desc = "Record Created";
