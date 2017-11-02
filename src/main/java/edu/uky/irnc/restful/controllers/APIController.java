@@ -304,7 +304,6 @@ public class APIController {
                         gPayload gpay = gPayLoadFromJson(pipelineJSON);
 
                         for(gNode node : gpay.nodes) {
-                            logger.error("CODY NODE:  " + node.node_id + " " + node.params);
 
                             String paramString = node.params.get("params");
                             Map<String,String> params = getMapFromString(paramString,false);
@@ -314,14 +313,20 @@ public class APIController {
                             String agent = params.get("dstAgent");
                             String pluginId = params.get("dstPlugin");
 
-                            logger.error("region: " + region + " agent:" + agent + " pluginId:" + pluginId);
 
-                            for (Map.Entry<String, String> entry : params.entrySet()) {
-                                String key = entry.getKey();
-                                String value = entry.getValue();
-                                logger.error("key: " + key + " value:" + value);
-                                // ...
-                            }
+                            MsgEvent runProcess = new MsgEvent(MsgEvent.Type.EXEC, plugin.getRegion(), plugin.getAgent(),
+                                    plugin.getPluginID(), "Issuing command to start program");
+                            runProcess.setParam("src_region", plugin.getRegion());
+                            runProcess.setParam("src_agent", plugin.getAgent());
+                            runProcess.setParam("src_plugin", plugin.getPluginID());
+                            runProcess.setParam("dst_region", region);
+                            runProcess.setParam("dst_agent", agent);
+                            runProcess.setParam("dst_plugin", pluginId);
+                            runProcess.setParam("cmd", "run_process");
+
+                            MsgEvent runProcessResponse = plugin.sendRPC(runProcess);
+
+                            logger.error("CODY RUNRESPONSE:  " + node.node_id + " " + runProcessResponse.getParams());
 
 
                         }
