@@ -327,10 +327,17 @@ public class APIController {
                             Type stringStringMap = new TypeToken<Map<String, String>>(){}.getType();
                             Map<String,String> map = gson.fromJson(pnode, stringStringMap);
 
+                            for (Map.Entry<String, String> entry : map.entrySet()) {
+                                String key = entry.getKey();
+                                Object value = entry.getValue();
+                                // ...
+                            }
+
                             String region = map.get("region");
                             String agent = map.get("agent");
                             String plugin = map.get("plugin");
 
+                            logger.info("pnode: " + pnode);
                             logger.info("region: " + region + " agent:" + agent + " plugin:" + plugin);
 
 
