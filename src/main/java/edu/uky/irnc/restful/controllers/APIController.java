@@ -26,6 +26,7 @@ import javax.ws.rs.core.Response;
 import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.net.URLDecoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -305,18 +306,15 @@ public class APIController {
                         for(gNode node : gpay.nodes) {
                             logger.error("CODY NODE:  " + node.node_id + " " + node.params);
 
-                            String region = node.params.get("dstRegion");
-                            String agent = node.params.get("dstAgent");
-                            String plugin = node.params.get("dstPlugin");
+                            String paramString = node.params.get("params");
+                            Map<String,String> params = getMapFromString(paramString,false);
 
-                            logger.error("region: " + region + " agent:" + agent + " plugin:" + plugin);
 
-                            for (Map.Entry<String, String> entry : node.params.entrySet()) {
-                                String key = entry.getKey();
-                                String value = entry.getValue();
-                                logger.error("key: " + key + " value:" + value);
-                                // ...
-                            }
+                            String region = params.get("dstRegion");
+                            String agent = params.get("dstAgent");
+                            String pluginId = params.get("dstPlugin");
+
+                            logger.error("region: " + region + " agent:" + agent + " pluginId:" + pluginId);
 
 
                         }
@@ -336,6 +334,45 @@ public class APIController {
             }
 
     }
+
+    public Map<String,String> getMapFromString(String param, boolean isRestricted) {
+        Map<String,String> paramMap = null;
+
+
+        try{
+            String[] sparam = param.split(",");
+
+            paramMap = new HashMap<String,String>();
+
+            for(String str : sparam)
+            {
+                String[] sstr = str.split("=");
+
+                if(isRestricted)
+                {
+                    paramMap.put(URLDecoder.decode(sstr[0], "UTF-8"), "");
+                }
+                else
+                {
+                    if(sstr.length > 1)
+                    {
+                        paramMap.put(URLDecoder.decode(sstr[0], "UTF-8"), URLDecoder.decode(sstr[1], "UTF-8"));
+                    }
+                    else
+                    {
+                        paramMap.put(URLDecoder.decode(sstr[0], "UTF-8"), "");
+                    }
+                }
+            }
+        }
+        catch(Exception ex)
+        {
+            System.out.println("getMapFromString Error: " + ex.toString());
+        }
+
+        return paramMap;
+    }
+
 
     public String JsonFromgPayLoad(gPayload gpay) {
         Gson gson = new GsonBuilder().create();
