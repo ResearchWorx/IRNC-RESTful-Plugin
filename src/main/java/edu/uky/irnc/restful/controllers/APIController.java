@@ -316,8 +316,8 @@ public class APIController {
                             getAgent.setParam("dst_region", plugin.getRegion());
                             getAgent.setParam("globalcmd", Boolean.TRUE.toString());
                             getAgent.setParam("action", "getisassignmentinfo");
-                            getAgent.setParam("inode_id", iNodeId);
-                            getAgent.setParam("resource_id", ResourceId);
+                            getAgent.setParam("action_inodeid", iNodeId);
+                            getAgent.setParam("action_resourceid", ResourceId);
 
                             MsgEvent getAgentResponse = plugin.sendRPC(getAgent);
 
