@@ -508,13 +508,13 @@ public class APIController {
             //pipelineinfo
             MsgEvent response = plugin.sendRPC(pipelineCheck);
             String pipelineinfo = response.getCompressedParam("pipelineinfo");
-            logger.error("pipelineinfo: " + pipelineinfo);
+            logger.debug("pipelineinfo: " + pipelineinfo);
 
             //List<pipelineStatus> pStatus = pipelineStatusFromJson(pipelineinfo);
 
             pipelineStatus pStatus = new Gson().fromJson(pipelineinfo,pipelineStatus.class);
 
-            logger.error("pStatus: ");
+            logger.debug("pStatus: ");
 
             //List<Pipeline> pPipeline = pStatus.getPipelines().get(0).getStatusCode());
             status = Integer.parseInt(pStatus.getPipelines().get(0).getStatusCode());
