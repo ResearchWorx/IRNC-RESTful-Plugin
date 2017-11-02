@@ -270,7 +270,7 @@ public class APIController {
                             logger.error("Problem with Pipeline Check ! Status -1");
                         }
                         status = getPipelineStatus(pipeline_id);
-                        logger.error("pipeline_id: " + pipeline_id + " status:" + status);
+                        logger.info("pipeline_id: " + pipeline_id + " status:" + status);
                     }
 
 /*
@@ -329,13 +329,34 @@ public class APIController {
                             Type stringStringMap = new TypeToken<Map<String, String>>(){}.getType();
                             Map<String,String> map = gson.fromJson(isassignmentinfo, stringStringMap);
 
+                            String region = map.get("region");
+                            String agent = map.get("agent");
+                            String pluginId = map.get("plugin");
+
+                            MsgEvent runProcess = new MsgEvent(MsgEvent.Type.EXEC, plugin.getRegion(), plugin.getAgent(),
+                                    plugin.getPluginID(), "Issuing command to start program");
+                            runProcess.setParam("src_region", plugin.getRegion());
+                            runProcess.setParam("src_agent", plugin.getAgent());
+                            runProcess.setParam("src_plugin", plugin.getPluginID());
+                            runProcess.setParam("dst_region", region);
+                            runProcess.setParam("dst_agent", agent);
+                            runProcess.setParam("dst_plugin", pluginId);
+                            runProcess.setParam("cmd", "run_process");
+
+                            logger.error("region: " + region + " agent:" + agent + " plugin:" + pluginId);
+
+                            MsgEvent runProcessResponse = plugin.sendRPC(runProcess);
+
+                            logger.error("CODY RUNRESPONSE:  " + node.node_id + " " + runProcessResponse.getParams());
+
+                            /*
                             for (Map.Entry<String, String> entry : map.entrySet()) {
                                 String key = entry.getKey();
                                 Object value = entry.getValue();
                                 logger.info("key: " + key + " value: " + value);
                                 // ...
                             }
-
+                            */
                             //ce.setParam("isassignmentinfo",plugin.getGDB().getIsAssignedInfo(actionResourceId,actionInodeId,false));
                             //ce.setParam("isassignmentresourceinfo",plugin.getGDB().getIsAssignedInfo(actionResourceId,actionInodeId,true));
 
