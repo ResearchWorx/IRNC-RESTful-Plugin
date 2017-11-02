@@ -324,6 +324,9 @@ public class APIController {
                             String isassignmentinfo = getAgentResponse.getCompressedParam("isassignmentinfo");
                             String isassignmentresourceinfo = getAgentResponse.getCompressedParam("isassignmentresourceinfo");
 
+                            logger.info("info: " + isassignmentinfo);
+                            logger.info("rinfo: " + isassignmentresourceinfo);
+
                             Gson gson = new Gson();
                             Type stringStringMap = new TypeToken<Map<String, String>>(){}.getType();
                             Map<String,String> map = gson.fromJson(isassignmentinfo, stringStringMap);
