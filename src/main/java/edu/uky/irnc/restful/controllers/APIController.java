@@ -316,6 +316,13 @@ public class APIController {
 
                             logger.error("region: " + region + " agent:" + agent + " pluginId:" + pluginId);
 
+                            for (Map.Entry<String, String> entry : params.entrySet()) {
+                                String key = entry.getKey();
+                                String value = entry.getValue();
+                                logger.error("key: " + key + " value:" + value);
+                                // ...
+                            }
+
 
                         }
 
