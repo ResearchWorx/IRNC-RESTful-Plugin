@@ -304,6 +304,13 @@ public class APIController {
 
                         for(gNode node : gpay.nodes) {
                             logger.error("CODY NODE:  " + node.node_id + " " + node.params);
+
+                            String region = node.params.get("dstRegion");
+                            String agent = node.params.get("dstAgent");
+                            String plugin = node.params.get("dstPlugin");
+
+                            logger.error("region: " + region + " agent:" + agent + " plugin:" + plugin);
+
                         }
 
                     }
