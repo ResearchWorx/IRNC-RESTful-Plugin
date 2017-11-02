@@ -315,12 +315,38 @@ public class APIController {
                             getAgent.setParam("src_plugin", plugin.getPluginID());
                             getAgent.setParam("dst_region", plugin.getRegion());
                             getAgent.setParam("globalcmd", Boolean.TRUE.toString());
-                            getAgent.setParam("action", "getinodestatus");
+                            getAgent.setParam("action", "getisassignmentinfo");
                             getAgent.setParam("inode_id", iNodeId);
                             getAgent.setParam("resource_id", ResourceId);
 
                             MsgEvent getAgentResponse = plugin.sendRPC(getAgent);
 
+                            String isassignmentinfo = getAgentResponse.getCompressedParam("isassignmentinfo");
+                            String isassignmentresourceinfo = getAgentResponse.getCompressedParam("isassignmentresourceinfo");
+
+                            Gson gson = new Gson();
+                            Type stringStringMap = new TypeToken<Map<String, String>>(){}.getType();
+                            Map<String,String> map = gson.fromJson(isassignmentinfo, stringStringMap);
+                            Map<String,String> map2 = gson.fromJson(isassignmentresourceinfo, stringStringMap);
+
+                            for (Map.Entry<String, String> entry : map.entrySet()) {
+                                String key = entry.getKey();
+                                Object value = entry.getValue();
+                                // ...
+                            }
+
+                            for (Map.Entry<String, String> entry : map2.entrySet()) {
+                                String key = entry.getKey() + " 2";
+                                Object value = entry.getValue() + " 2";
+                                // ...
+                            }
+
+                            //ce.setParam("isassignmentinfo",plugin.getGDB().getIsAssignedInfo(actionResourceId,actionInodeId,false));
+                            //ce.setParam("isassignmentresourceinfo",plugin.getGDB().getIsAssignedInfo(actionResourceId,actionInodeId,true));
+
+
+                            //logger.info("pnode: " + pnode);
+                            /*
                             String pnode = getAgentResponse.getCompressedParam("pnode");
 
                             Gson gson = new Gson();
@@ -339,7 +365,7 @@ public class APIController {
 
                             logger.info("pnode: " + pnode);
                             logger.info("region: " + region + " agent:" + agent + " plugin:" + plugin);
-
+                            */
 
                             /*
                             String paramString = node.params.get("params");
