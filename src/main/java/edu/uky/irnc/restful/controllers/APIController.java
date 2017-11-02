@@ -332,12 +332,14 @@ public class APIController {
                             for (Map.Entry<String, String> entry : map.entrySet()) {
                                 String key = entry.getKey();
                                 Object value = entry.getValue();
+                                logger.info("key: " + key + " value: " + value);
                                 // ...
                             }
 
                             for (Map.Entry<String, String> entry : map2.entrySet()) {
                                 String key = entry.getKey() + " 2";
                                 Object value = entry.getValue() + " 2";
+                                logger.info("key: " + key + " value: " + value);
                                 // ...
                             }
 
