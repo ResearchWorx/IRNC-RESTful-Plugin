@@ -324,6 +324,8 @@ public class APIController {
                             runProcess.setParam("dst_plugin", pluginId);
                             runProcess.setParam("cmd", "run_process");
 
+                            logger.error("region: " + region + " agent:" + agent + " plugin:" + pluginId);
+
                             MsgEvent runProcessResponse = plugin.sendRPC(runProcess);
 
                             logger.error("CODY RUNRESPONSE:  " + node.node_id + " " + runProcessResponse.getParams());
