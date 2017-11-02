@@ -353,7 +353,7 @@ public class APIController {
 
             for(String str : sparam)
             {
-                String[] sstr = str.split("=");
+                String[] sstr = str.split(":");
 
                 if(isRestricted)
                 {
