@@ -305,6 +305,25 @@ public class APIController {
 
                         for(gNode node : gpay.nodes) {
 
+                            String iNodeId = node.params.get("inode_id");
+                            String ResourceId = node.params.get("resource_id");
+
+                            MsgEvent getAgent = new MsgEvent(MsgEvent.Type.EXEC, plugin.getRegion(), plugin.getAgent(),
+                                    plugin.getPluginID(), "Issuing command to start program");
+                            getAgent.setParam("src_region", plugin.getRegion());
+                            getAgent.setParam("src_agent", plugin.getAgent());
+                            getAgent.setParam("src_plugin", plugin.getPluginID());
+                            getAgent.setParam("dst_region", plugin.getRegion());
+                            getAgent.setParam("globalcmd", Boolean.TRUE.toString());
+                            getAgent.setParam("action", "getinodestatus");
+                            getAgent.setParam("inode_id", iNodeId);
+                            getAgent.setParam("resource_id", ResourceId);
+
+                            MsgEvent getAgentResponse = plugin.sendRPC(getAgent);
+
+                            logger.info("CODY: " + getAgentResponse.getParams());
+
+                            /*
                             String paramString = node.params.get("params");
                             Map<String,String> params = getMapFromString(paramString,false);
 
@@ -329,7 +348,7 @@ public class APIController {
                             MsgEvent runProcessResponse = plugin.sendRPC(runProcess);
 
                             logger.error("CODY RUNRESPONSE:  " + node.node_id + " " + runProcessResponse.getParams());
-
+                            */
 
                         }
 
