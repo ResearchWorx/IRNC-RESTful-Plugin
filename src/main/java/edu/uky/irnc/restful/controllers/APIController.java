@@ -33,7 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Path("API")
 public class APIController {
 
-    public static ConcurrentHashMap<String, MsgEvent> activePlugins = new ConcurrentHashMap<>();
+    public static ConcurrentHashMap<String, String> activeApplications = new ConcurrentHashMap<>();
     public static ConcurrentHashMap<String, QueueListener> listeners = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<String, KanonWatcher> watchers = new ConcurrentHashMap<>();
     private static Plugin plugin;
@@ -131,6 +131,7 @@ public class APIController {
         n0Params.put("dstPlugin", plugin.getPluginID());
 
 //APP CONFIG
+        /*
         try {
             String command = "60 10  4  11  12  20  21  23  16";
             mApp app = new mApp("my test");
@@ -151,7 +152,7 @@ public class APIController {
             String exceptionAsString = sw.toString();
             logger.error(exceptionAsString);
         }
-
+*/
         List<gNode> gNodes = new ArrayList<>();
         gNodes.add(new gNode("dummy", "uk", "0", n0Params));
         gEdge e0 = new gEdge("0","1000000","1000000");
@@ -308,6 +309,9 @@ public class APIController {
 
                     String pipeline_id = response.getParam("gpipeline_id");
 
+                    //todo make this much cleaner
+                    //adding application and exchange reference
+                    activeApplications.put(amqp_exchange,pipeline_id);
                     //Thread.sleep(3000);
 
                     //int status = getPipelineStatus(pipeline_id);
@@ -738,6 +742,38 @@ public class APIController {
                 .header("Access-Control-Allow-Origin", "*").build();
     }
 
+    private boolean removeApplication(String pipeline_id) {
+        boolean isRemoved = false;
+        try {
+
+            MsgEvent remove = new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(),
+                    plugin.getPluginID(), "Issuing command to start program");
+            remove.setParam("src_region", plugin.getRegion());
+            remove.setParam("src_agent", plugin.getAgent());
+            remove.setParam("src_plugin", plugin.getPluginID());
+            remove.setParam("dst_region", plugin.getRegion());
+
+            remove.setParam("globalcmd", Boolean.TRUE.toString());
+            remove.setParam("action", "gpipelineremove");
+            remove.setParam("action_pipelineid", pipeline_id);
+
+            MsgEvent response = plugin.sendRPC(remove);
+
+            if(response.getParam("success") != null) {
+
+                if(Boolean.parseBoolean(response.getParam("success"))) {
+                    isRemoved = true;
+                }
+
+            }
+
+        } catch(Exception ex) {
+            logger.error("removeApplication Error :" + ex.getMessage());
+        }
+        return isRemoved;
+    }
+
+
     @GET
     @Path("close/{amqp_exchange}")
     @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
@@ -748,6 +784,12 @@ public class APIController {
         if ((listener = listeners.get(amqp_exchange)) != null) {
             listener.kill();
             listeners.remove(amqp_exchange);
+            //todo remove plugins
+            //remove plugins
+            String pipeline_id = activeApplications.get(amqp_exchange);
+            if(!removeApplication(pipeline_id)) {
+                logger.error("Could not remove application: " + pipeline_id + " exchange_id:" + amqp_exchange);
+            }
             return Response.ok("QueryListener Disposed").header("Access-Control-Allow-Origin", "*").build();
         }
         KanonWatcher watcher;
