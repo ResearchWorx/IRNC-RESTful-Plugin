@@ -271,7 +271,7 @@ public class APIController {
             Date start = new Date();
             Date end = new Date();
             Calendar temp_er = Calendar.getInstance();
-            temp_er.add(Calendar.SECOND, app.duration);
+            temp_er.add(Calendar.SECOND, app.duration * 10);
             end = temp_er.getTime();
 
 
