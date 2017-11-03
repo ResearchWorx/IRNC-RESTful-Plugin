@@ -268,7 +268,7 @@ public class APIController {
             }
 
             //get queue ready
-
+            logger.info("App: " + app.name + " duration:" + app.duration);
             Date start = new Date();
             Date end = new Date();
             Calendar temp_er = Calendar.getInstance();
