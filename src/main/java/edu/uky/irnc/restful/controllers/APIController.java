@@ -151,7 +151,7 @@ public class APIController {
             gPayload gpay = new gPayload(gNodes, gEdges);
             gpay.pipeline_id = app.id;
             gpay.pipeline_name = app.name;
-            String json = gson.toJson(gpay);
+            cadlJSON = gson.toJson(gpay);
 
         } catch(Exception ex) {
             logger.error("mAppToCADL Error : " + ex.getMessage());
