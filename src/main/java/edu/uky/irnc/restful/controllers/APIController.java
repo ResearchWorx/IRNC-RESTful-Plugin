@@ -277,32 +277,8 @@ public class APIController {
                 String gPipelineJSON = generateCADL(runCommand,targetLocation);
                 String pipeline_id = addApplication(gPipelineJSON);
 
-                /*
-                enable.setParam("configparams", "pluginname=executor-plugin" +
-                        ",jarfile=executor/target/executor-plugin-0.1.0.jar" +
-                        ",dstPlugin=" + plugin.getPluginID() +
-                        ",runCommand=" + args.substring(args.indexOf(" ") + 1).replaceAll(",", "\\,") + " " + amqp_server + " " + amqp_port + " " +
-                        amqp_login + " " + amqp_password + " " + amqp_exchange);
-*/
 
                 try {
-                    //MsgEvent response = plugin.sendRPC(enable);
-
-                    //String  gpipelineString = response.getCompressedParam("action_gpipeline");
-
-                    //Gson gson = new GsonBuilder().create();
-                    //gPayload me = gson.fromJson(gpipelineString, gPayload.class);
-
-                    //String pipeline_id = response.getParam("gpipeline_id");
-
-/*
-                    for(gNode node : me.nodes) {
-                        logger.error("node_id: " + node.node_id + " node_name:" + node.node_name + " node: " + node.params);
-                   }
-                   */
-                    //logger.error(response.getParams().toString());
-
-
 
                     if (pipeline_id != null) {
 
@@ -315,8 +291,6 @@ public class APIController {
                         //int status = getPipelineStatus(pipeline_id);
                         int status = -2;
 
-
-
                         while(!(status == 10) && (status != -1)) {
                             Thread.sleep(3000);
                             if(status == -1) {
@@ -326,76 +300,8 @@ public class APIController {
                             logger.info("pipeline_id: " + pipeline_id + " status:" + status);
                         }
 
-
-
-                        //listener.setPluginID(response.getParam("plugin"));
-
-                        MsgEvent getpipeline = new MsgEvent(MsgEvent.Type.EXEC, plugin.getRegion(), plugin.getAgent(),
-                                plugin.getPluginID(), "Issuing command to start program");
-                        getpipeline.setParam("src_region", plugin.getRegion());
-                        getpipeline.setParam("src_agent", plugin.getAgent());
-                        getpipeline.setParam("src_plugin", plugin.getPluginID());
-                        getpipeline.setParam("dst_region", plugin.getRegion());
-
-                        getpipeline.setParam("globalcmd", Boolean.TRUE.toString());
-                        getpipeline.setParam("action", "getgpipeline");
-                        getpipeline.setParam("action_pipelineid",pipeline_id);
-
-                        MsgEvent getPipelineResponse = plugin.sendRPC(getpipeline);
-
-                        //logger.error("CODY: " + getPipelineResponse.getParams());
-                        String pipelineJSON = getPipelineResponse.getCompressedParam("gpipeline");
-
-                        gPayload gpay = gPayLoadFromJson(pipelineJSON);
-
-                        for(gNode node : gpay.nodes) {
-
-                            String iNodeId = node.params.get("inode_id");
-                            String ResourceId = node.params.get("resource_id");
-
-                            MsgEvent getAgent = new MsgEvent(MsgEvent.Type.EXEC, plugin.getRegion(), plugin.getAgent(),
-                                    plugin.getPluginID(), "Issuing command to start program");
-                            getAgent.setParam("src_region", plugin.getRegion());
-                            getAgent.setParam("src_agent", plugin.getAgent());
-                            getAgent.setParam("src_plugin", plugin.getPluginID());
-                            getAgent.setParam("dst_region", plugin.getRegion());
-                            getAgent.setParam("globalcmd", Boolean.TRUE.toString());
-                            getAgent.setParam("action", "getisassignmentinfo");
-                            getAgent.setParam("action_inodeid", iNodeId);
-                            getAgent.setParam("action_resourceid", ResourceId);
-
-                            MsgEvent getAgentResponse = plugin.sendRPC(getAgent);
-
-                            String isassignmentinfo = getAgentResponse.getCompressedParam("isassignmentinfo");
-
-                            logger.info("info: " + isassignmentinfo);
-
-                            Gson gson = new Gson();
-                            Type stringStringMap = new TypeToken<Map<String, String>>(){}.getType();
-                            Map<String,String> map = gson.fromJson(isassignmentinfo, stringStringMap);
-
-                            String region = map.get("region");
-                            String agent = map.get("agent");
-                            String pluginId = map.get("plugin");
-
-                            MsgEvent runProcess = new MsgEvent(MsgEvent.Type.EXEC, plugin.getRegion(), plugin.getAgent(),
-                                    plugin.getPluginID(), "Issuing command to start program");
-                            runProcess.setParam("src_region", plugin.getRegion());
-                            runProcess.setParam("src_agent", plugin.getAgent());
-                            runProcess.setParam("src_plugin", plugin.getPluginID());
-                            runProcess.setParam("dst_region", region);
-                            runProcess.setParam("dst_agent", agent);
-                            runProcess.setParam("dst_plugin", pluginId);
-                            runProcess.setParam("cmd", "run_process");
-
-
-                            logger.info("Sending message to region: " + region + " agent:" + agent + " plugin:" + pluginId + " to start measurement.");
-
-                            MsgEvent runProcessResponse = plugin.sendRPC(runProcess);
-
-                            logger.info("CODY RUNRESPONSE:  " + node.node_id + " " + runProcessResponse.getParams());
-
-                        }
+                        //applicaiton is readed enable it
+                        enableApplication(pipeline_id);
 
                     } else {
                         logger.error("pipeline_id = null");
@@ -426,6 +332,91 @@ public class APIController {
                         .header("Access-Control-Allow-Origin", "*").build();
             }
 
+    }
+
+    private boolean enableApplication(String pipeline_id) {
+        boolean isEnabled = false;
+        try {
+
+            gPayload gpay = getGpayload(pipeline_id);
+
+            for(gNode node : gpay.nodes) {
+
+                String iNodeId = node.params.get("inode_id");
+                String ResourceId = node.params.get("resource_id");
+
+                MsgEvent getAgent = new MsgEvent(MsgEvent.Type.EXEC, plugin.getRegion(), plugin.getAgent(),
+                        plugin.getPluginID(), "Issuing command to start program");
+                getAgent.setParam("src_region", plugin.getRegion());
+                getAgent.setParam("src_agent", plugin.getAgent());
+                getAgent.setParam("src_plugin", plugin.getPluginID());
+                getAgent.setParam("dst_region", plugin.getRegion());
+                getAgent.setParam("globalcmd", Boolean.TRUE.toString());
+                getAgent.setParam("action", "getisassignmentinfo");
+                getAgent.setParam("action_inodeid", iNodeId);
+                getAgent.setParam("action_resourceid", ResourceId);
+
+                MsgEvent getAgentResponse = plugin.sendRPC(getAgent);
+
+                String isassignmentinfo = getAgentResponse.getCompressedParam("isassignmentinfo");
+
+                Gson gson = new Gson();
+                Type stringStringMap = new TypeToken<Map<String, String>>(){}.getType();
+                Map<String,String> map = gson.fromJson(isassignmentinfo, stringStringMap);
+
+                String region = map.get("region");
+                String agent = map.get("agent");
+                String pluginId = map.get("plugin");
+
+                MsgEvent runProcess = new MsgEvent(MsgEvent.Type.EXEC, plugin.getRegion(), plugin.getAgent(),
+                        plugin.getPluginID(), "Issuing command to start program");
+                runProcess.setParam("src_region", plugin.getRegion());
+                runProcess.setParam("src_agent", plugin.getAgent());
+                runProcess.setParam("src_plugin", plugin.getPluginID());
+                runProcess.setParam("dst_region", region);
+                runProcess.setParam("dst_agent", agent);
+                runProcess.setParam("dst_plugin", pluginId);
+                runProcess.setParam("cmd", "run_process");
+
+                MsgEvent runProcessResponse = plugin.sendRPC(runProcess);
+
+                logger.info("CODY RUNRESPONSE:  " + node.node_id + " " + runProcessResponse.getParams());
+                isEnabled = true;
+            }
+
+        } catch(Exception ex) {
+            logger.error("enableApplication Error " + ex.getMessage());
+        }
+        return isEnabled;
+    }
+
+    private gPayload getGpayload(String pipeline_id) {
+        gPayload gpay = null;
+        try {
+
+            MsgEvent getpipeline = new MsgEvent(MsgEvent.Type.EXEC, plugin.getRegion(), plugin.getAgent(),
+                    plugin.getPluginID(), "Issuing command to start program");
+            getpipeline.setParam("src_region", plugin.getRegion());
+            getpipeline.setParam("src_agent", plugin.getAgent());
+            getpipeline.setParam("src_plugin", plugin.getPluginID());
+            getpipeline.setParam("dst_region", plugin.getRegion());
+
+            getpipeline.setParam("globalcmd", Boolean.TRUE.toString());
+            getpipeline.setParam("action", "getgpipeline");
+            getpipeline.setParam("action_pipelineid",pipeline_id);
+
+            MsgEvent getPipelineResponse = plugin.sendRPC(getpipeline);
+
+            //logger.error("CODY: " + getPipelineResponse.getParams());
+            String pipelineJSON = getPipelineResponse.getCompressedParam("gpipeline");
+
+            gpay = gPayLoadFromJson(pipelineJSON);
+
+
+        } catch(Exception ex) {
+            logger.error("getGpayload Error " + ex.getMessage());
+        }
+        return gpay;
     }
 
     public Map<String,String> getMapFromString(String param, boolean isRestricted) {
