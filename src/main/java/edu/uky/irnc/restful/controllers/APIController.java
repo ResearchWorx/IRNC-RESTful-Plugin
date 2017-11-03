@@ -647,8 +647,7 @@ public class APIController {
 
             add.setParam("globalcmd", Boolean.TRUE.toString());
             add.setParam("action", "gpipelinesubmit");
-            add.setParam("action_pipelineid", pipeline_id);
-
+            add.setParam("action_tenantid","0");
             add.setParam("gpipeline_compressed",String.valueOf(Boolean.TRUE));
             add.setCompressedParam("action_gpipeline",gPipelineJSON);
 
