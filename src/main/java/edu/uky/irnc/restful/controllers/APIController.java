@@ -275,8 +275,8 @@ public class APIController {
             end = temp_er.getTime();
 
 
-            QueueListener listener = new QueueListener(qhost, qlogin, qpassword, qhost, "filler",
-                    start, end, "filler");
+            QueueListener listener = new QueueListener(qhost, qlogin, qpassword, qname, app.name,
+                    start, end, "N/A");
             new Thread(listener).start();
             listeners.put(qname, listener);
 
@@ -337,7 +337,8 @@ public class APIController {
 
         // return HTTP response 200 in case of success
         //return Response.status(200).entity("woot2").build();
-        return Response.ok(returnString, MediaType.APPLICATION_JSON_TYPE).build();
+        //return Response.ok(returnString, MediaType.APPLICATION_JSON_TYPE).build();
+        return Response.ok(returnString).header("Access-Control-Allow-Origin", "*").build();
     }
 
     @GET
