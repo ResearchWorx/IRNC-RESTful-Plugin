@@ -295,25 +295,6 @@ public class APIController {
 
                     //String pipeline_id = response.getParam("gpipeline_id");
 
-                    //todo make this much cleaner
-                    //adding application and exchange reference
-                    activeApplications.put(amqp_exchange,pipeline_id);
-                    //Thread.sleep(3000);
-
-                    //int status = getPipelineStatus(pipeline_id);
-                    int status = -2;
-
-
-
-                    while(!(status == 10) && (status != -1)) {
-                        Thread.sleep(3000);
-                        if(status == -1) {
-                            logger.error("Problem with Pipeline Check ! Status -1");
-                        }
-                        status = getPipelineStatus(pipeline_id);
-                        logger.info("pipeline_id: " + pipeline_id + " status:" + status);
-                    }
-
 /*
                     for(gNode node : me.nodes) {
                         logger.error("node_id: " + node.node_id + " node_name:" + node.node_name + " node: " + node.params);
@@ -324,6 +305,29 @@ public class APIController {
 
 
                     if (pipeline_id != null) {
+
+
+                        //todo make this much cleaner
+                        //adding application and exchange reference
+                        activeApplications.put(amqp_exchange,pipeline_id);
+                        //Thread.sleep(3000);
+
+                        //int status = getPipelineStatus(pipeline_id);
+                        int status = -2;
+
+
+
+                        while(!(status == 10) && (status != -1)) {
+                            Thread.sleep(3000);
+                            if(status == -1) {
+                                logger.error("Problem with Pipeline Check ! Status -1");
+                            }
+                            status = getPipelineStatus(pipeline_id);
+                            logger.info("pipeline_id: " + pipeline_id + " status:" + status);
+                        }
+
+
+
                         //listener.setPluginID(response.getParam("plugin"));
 
                         MsgEvent getpipeline = new MsgEvent(MsgEvent.Type.EXEC, plugin.getRegion(), plugin.getAgent(),
@@ -393,7 +397,10 @@ public class APIController {
 
                         }
 
+                    } else {
+                        logger.error("pipeline_id = null");
                     }
+
 
 
                     return Response.ok(amqp_exchange).header("Access-Control-Allow-Origin", "*").build();
@@ -646,6 +653,8 @@ public class APIController {
             add.setCompressedParam("action_gpipeline",gPipelineJSON);
 
             MsgEvent response = plugin.sendRPC(add);
+
+            logger.info("RESPONSE ADD : " + response.getParams());
 
             if(response.getParam("gpipeline_id") != null) {
 
