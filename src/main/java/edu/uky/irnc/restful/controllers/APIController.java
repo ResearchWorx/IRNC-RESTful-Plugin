@@ -132,10 +132,10 @@ public class APIController {
 
 //APP CONFIG
         try {
-            String command = "-c 0x3 -w 0000:44:00.0 -- -p 0x1 --config=\"(0,0,1)\" -- 60 10  4  11  12  20  21  23  16 ";
+            String command = "60 10  4  11  12  20  21  23  16";
             mApp app = new mApp("my test");
             //mNode(String type, String name, String commands)
-            mNode node = new mNode("netflow", "UK Netflow", command);
+            mNode node = new mNode("Netflow-DPDK-NORSSuml/Netflow-DPDK-NORSS/run_exe.sh", "UK Netflow", command);
             node.qname = "exchange-name-0";
             node.qhost = "128.163.217.97";
             node.qport = "5821";
