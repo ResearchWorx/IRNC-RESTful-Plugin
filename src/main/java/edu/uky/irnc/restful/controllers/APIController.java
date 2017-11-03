@@ -268,26 +268,67 @@ public class APIController {
             }
 
             //get queue ready
-            logger.info("App: " + app.name + " duration:" + app.duration);
             Date start = new Date();
             Date end = new Date();
             Calendar temp_er = Calendar.getInstance();
             temp_er.add(Calendar.SECOND, app.duration);
             end = temp_er.getTime();
 
-/*
+
             QueueListener listener = new QueueListener(qhost, qlogin, qpassword, qhost, "filler",
                     start, end, "filler");
             new Thread(listener).start();
             listeners.put(qname, listener);
-*/
-            //
 
             String cadlJSON = mAppToCADL(app);
 
             logger.info("CADLJSON: " + cadlJSON);
 
-                returnString = "ok";
+            String pipeline_id = addApplication(cadlJSON);
+
+            try {
+
+                if (pipeline_id != null) {
+
+
+                    //todo make this much cleaner
+                    //adding application and exchange reference
+                    activeApplications.put(qname,pipeline_id);
+                    //Thread.sleep(3000);
+
+                    //int status = getPipelineStatus(pipeline_id);
+                    int status = -2;
+
+                    while(!(status == 10) && (status != -1)) {
+                        Thread.sleep(3000);
+                        if(status == -1) {
+                            logger.error("Problem with Pipeline Check ! Status -1");
+                        }
+                        status = getPipelineStatus(pipeline_id);
+                        logger.info("pipeline_id: " + pipeline_id + " status:" + status);
+                    }
+
+                    //applicaiton is readed enable it
+                    enableApplication(pipeline_id);
+
+                } else {
+                    logger.error("pipeline_id = null");
+                }
+
+
+                returnString = qname;
+
+                //return Response.ok(qname).header("Access-Control-Allow-Origin", "*").build();
+            } catch (Exception ex) {
+
+                StringWriter sw = new StringWriter();
+                ex.printStackTrace(new PrintWriter(sw));
+                String exceptionAsString = sw.toString();
+                logger.error(exceptionAsString);
+
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error")
+                        .header("Access-Control-Allow-Origin", "*").build();
+            }
 
         } catch (Exception e) {
             logger.error("Error Parsing: - ");
