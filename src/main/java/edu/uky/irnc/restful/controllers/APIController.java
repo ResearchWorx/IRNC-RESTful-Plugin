@@ -271,7 +271,7 @@ public class APIController {
             Date start = new Date();
             Date end = new Date();
             Calendar temp_er = Calendar.getInstance();
-            temp_er.add(Calendar.SECOND, app.duration * 10);
+            temp_er.add(Calendar.SECOND, app.duration * 3);
             end = temp_er.getTime();
 
 
@@ -307,9 +307,6 @@ public class APIController {
                         status = getPipelineStatus(pipeline_id);
                         logger.info("pipeline_id: " + pipeline_id + " status:" + status);
                     }
-
-                    //applicaiton is readed enable it
-                    enableApplication(pipeline_id);
 
                 } else {
                     logger.error("pipeline_id = null");
@@ -711,6 +708,33 @@ public class APIController {
             e.printStackTrace();
         }
         return Response.status(500).entity("An exception has occured!")
+                .header("Access-Control-Allow-Origin", "*").build();
+    }
+
+    @GET
+    @Path("start/{amqp_exchange}")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
+    public Response start(@PathParam("amqp_exchange") String amqp_exchange) {
+        logger.trace("Call to start()");
+        logger.debug("amqp_exchange: {}", amqp_exchange);
+        try {
+
+            String pipeline_id = activeApplications.get(amqp_exchange);
+            //applicaiton is readed enable it
+            String status_code = "-1";
+            if(enableApplication(pipeline_id)) {
+                status_code = "10";
+            } else {
+                status_code = "9";
+            }
+
+            return Response.ok(status_code).header("Access-Control-Allow-Origin", "*").build();
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Response.status(500).entity("No such exchange found!")
                 .header("Access-Control-Allow-Origin", "*").build();
     }
 
