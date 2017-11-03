@@ -136,6 +136,11 @@ public class APIController {
             mApp app = new mApp("my test");
             //mNode(String type, String name, String commands)
             mNode node = new mNode("netflow", "UK Netflow", command);
+            node.qname = "exchange-name-0";
+            node.qhost = "128.163.217.97";
+            node.qport = "5821";
+            node.qlogin = "sr";
+            node.qpassword = "u$sr01";
             app.nodes.add(node);
 
             logger.info(gson.toJson(app));
