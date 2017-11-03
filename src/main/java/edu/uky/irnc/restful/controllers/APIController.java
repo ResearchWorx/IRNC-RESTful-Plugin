@@ -398,10 +398,22 @@ public class APIController {
 
                     return Response.ok(amqp_exchange).header("Access-Control-Allow-Origin", "*").build();
                 } catch (Exception ex) {
+
+                    StringWriter sw = new StringWriter();
+                    ex.printStackTrace(new PrintWriter(sw));
+                    String exceptionAsString = sw.toString();
+                    logger.error(exceptionAsString);
+
                     return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error")
                             .header("Access-Control-Allow-Origin", "*").build();
                 }
             } catch (Exception e) {
+
+                StringWriter sw = new StringWriter();
+                e.printStackTrace(new PrintWriter(sw));
+                String exceptionAsString = sw.toString();
+                logger.error(exceptionAsString);
+
                 e.printStackTrace();
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error")
                         .header("Access-Control-Allow-Origin", "*").build();
