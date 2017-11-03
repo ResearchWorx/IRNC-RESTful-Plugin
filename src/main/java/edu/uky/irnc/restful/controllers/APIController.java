@@ -110,6 +110,58 @@ public class APIController {
         }
     }
 
+    public String mAppToCADL(mApp app) {
+        String cadlJSON = null;
+
+        try {
+            Gson gson = new GsonBuilder().create();
+
+            List<gNode> gNodes = new ArrayList<>();
+            List<gEdge> gEdges = new ArrayList<>();
+
+            for (mNode node : app.nodes) {
+                logger.info("Node name: " + node.name + " type:" + node.type + " command:" + node.commands);
+
+                String queueAppend = node.qhost + " " + node.qport + " " + node.qlogin + " " + node.qpassword + " " + node.qname;
+                String startingDir = "/home/yan/AMIS/amis/uml/";
+                String type = node.type;
+                if(type.startsWith("/")) {
+                    type = type.replaceFirst("/","");
+                }
+                String runcommand = startingDir + type + node.commands + " " + queueAppend;
+
+                Map<String, String> n0Params = new HashMap<>();
+                n0Params.put("pluginname", "executor-plugin");
+                n0Params.put("jarfile", "executor/target/executor-plugin-0.1.0.jar");
+
+                n0Params.put("runCommand", runcommand);
+                n0Params.put("location", node.location);
+                n0Params.put("watchdogtimer", "5000");
+                //add information related to issuing plugin
+                n0Params.put("dstRegion", plugin.getRegion());
+                n0Params.put("dstAgent", plugin.getAgent());
+                n0Params.put("dstPlugin", plugin.getPluginID());
+                gNodes.add(new gNode(node.type, node.name, node.id, n0Params));
+            }
+
+            gEdge e0 = new gEdge("0", "1000000", "1000000");
+            gEdges.add(e0);
+
+
+            gPayload gpay = new gPayload(gNodes, gEdges);
+            gpay.pipeline_id = app.id;
+            gpay.pipeline_name = app.name;
+            String json = gson.toJson(gpay);
+
+        } catch(Exception ex) {
+            logger.error("mAppToCADL Error : " + ex.getMessage());
+        }
+
+        return cadlJSON;
+
+    }
+
+
     public String generateCADL(String runcommand, String targetLocation) {
         //MsgEvent me = new MsgEvent(MsgEvent.Type.CONFIG, null, null, null, "get resourceinventory inventory");
         //me.setParam("globalcmd", Boolean.TRUE.toString());
@@ -188,13 +240,52 @@ public class APIController {
 
             String jsonString = crunchifyBuilder.toString();
 
-            logger.info("ADD POST: " + jsonString);
-            mApp app = new Gson().fromJson(jsonString,mApp.class);
+            mApp app = new Gson().fromJson(jsonString, mApp.class);
 
-            logger.info("App: " + app.name + " nodes:");
-            for(mNode node : app.nodes) {
-                logger.info("Node name: " + node.name + " type:" + node.type + " command:" + node.commands);
+            String qhost = amqp_server;
+            String qport = amqp_port;
+            String qlogin = amqp_login;
+            String qpassword = amqp_password;
+            String qname = UUID.randomUUID().toString();
+
+            //determine if queue was provided
+            for (mNode node : app.nodes) {
+                if((node.qhost != null) && (node.qport != null) && (node.qlogin != null) && (node.qpassword != null) && (node.qname != null)) {
+                    qhost = node.qhost;
+                    qport = node.qport;
+                    qlogin = node.qlogin;
+                    qpassword = node.qpassword;
+                    qname = node.qname;
+                }
             }
+
+            for (mNode node : app.nodes) {
+                node.qhost = qhost;
+                node.qport = qport;
+                node.qlogin = qlogin;
+                node.qpassword = qpassword;
+                node.qname = qname;
+            }
+
+            //get queue ready
+/*
+            Date start = new Date();
+            Date end = new Date();
+            Calendar temp_er = Calendar.getInstance();
+            temp_er.add(Calendar.MINUTE, 6000);
+            end = temp_er.getTime();
+
+
+            QueueListener listener = new QueueListener(qhost, qlogin, qpassword, qhost, "filler",
+                    start, end, "filler");
+            new Thread(listener).start();
+            listeners.put(qname, listener);
+*/
+            //
+
+            String cadlJSON = mAppToCADL(app);
+
+            logger.info("CADLJSON: " + cadlJSON);
 
                 returnString = "ok";
 
