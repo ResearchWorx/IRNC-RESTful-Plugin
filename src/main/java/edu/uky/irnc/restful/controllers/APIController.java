@@ -261,23 +261,6 @@ public class APIController {
                         programArgs = programArgs.trim();
                     }
                 }
-                //String amqp_server = "128.163.217.97";
-                //String amqp_port = "5672";
-                //String amqp_login = "tester";
-                //String amqp_password = "tester01";
-
-                MsgEvent enable = new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(),
-                        plugin.getPluginID(), "Issuing command to start program");
-                enable.setParam("src_region", plugin.getRegion());
-                enable.setParam("src_agent", plugin.getAgent());
-                enable.setParam("src_plugin", plugin.getPluginID());
-                enable.setParam("dst_region", plugin.getRegion());
-                //enable.setParam("dst_agent", plugin.getAgent());
-                //enable.setParam("dst_agent", targetLocation);
-
-                enable.setParam("globalcmd", Boolean.TRUE.toString());
-                enable.setParam("action", "gpipelinesubmit");
-                enable.setParam("action_tenantid","0");
 
 
                 String amqp_exchange = java.util.UUID.randomUUID().toString();
@@ -286,10 +269,13 @@ public class APIController {
                 new Thread(listener).start();
                 listeners.put(amqp_exchange, listener);
 
-                String runCommand = args.substring(args.indexOf(" ") + 1).replaceAll(",", "\\,") + " " + amqp_server + " " + amqp_port + " " + amqp_login + " " + amqp_password + " " + amqp_exchange;
-                enable.setParam("gpipeline_compressed",String.valueOf(Boolean.TRUE));
-                enable.setCompressedParam("action_gpipeline",generateCADL(runCommand,targetLocation));
 
+                String runCommand = args.substring(args.indexOf(" ") + 1).replaceAll(",", "\\,") + " " + amqp_server + " " + amqp_port + " " + amqp_login + " " + amqp_password + " " + amqp_exchange;
+                //enable.setParam("gpipeline_compressed",String.valueOf(Boolean.TRUE));
+                //enable.setCompressedParam("action_gpipeline",generateCADL(runCommand,targetLocation));
+
+                String gPipelineJSON = generateCADL(runCommand,targetLocation);
+                String pipeline_id = addApplication(gPipelineJSON);
 
                 /*
                 enable.setParam("configparams", "pluginname=executor-plugin" +
@@ -300,14 +286,14 @@ public class APIController {
 */
 
                 try {
-                    MsgEvent response = plugin.sendRPC(enable);
+                    //MsgEvent response = plugin.sendRPC(enable);
 
                     //String  gpipelineString = response.getCompressedParam("action_gpipeline");
 
                     //Gson gson = new GsonBuilder().create();
                     //gPayload me = gson.fromJson(gpipelineString, gPayload.class);
 
-                    String pipeline_id = response.getParam("gpipeline_id");
+                    //String pipeline_id = response.getParam("gpipeline_id");
 
                     //todo make this much cleaner
                     //adding application and exchange reference
@@ -337,8 +323,8 @@ public class APIController {
 
 
 
-                    if (response != null) {
-                        listener.setPluginID(response.getParam("plugin"));
+                    if (pipeline_id != null) {
+                        //listener.setPluginID(response.getParam("plugin"));
 
                         MsgEvent getpipeline = new MsgEvent(MsgEvent.Type.EXEC, plugin.getRegion(), plugin.getAgent(),
                                 plugin.getPluginID(), "Issuing command to start program");
@@ -461,7 +447,6 @@ public class APIController {
         return paramMap;
     }
 
-
     public String JsonFromgPayLoad(gPayload gpay) {
         Gson gson = new GsonBuilder().create();
         //gPayload me = gson.fromJson(json, gPayload.class);
@@ -531,149 +516,6 @@ public class APIController {
         return yourClassList;
 
     }
-
-
-/*
-    @GET
-    @Path("submit/{args:.*}")
-    @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
-    public Response submit(@PathParam("args") String args) {
-        logger.trace("Call to submit({})", args);
-        String[] parsedArgs = args.split(" ");
-        if (parsedArgs.length < 2) {
-            return Response.status(Response.Status.OK).entity("Invalid arguments issued: " + args)
-                    .header("Access-Control-Allow-Origin", "*").build();
-        }
-        String targetLocation = parsedArgs[0];
-        String program = parsedArgs[1];
-        if (program.equals("kanon")) {
-            try {
-                MsgEvent enable = new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(),
-                        plugin.getPluginID(), "Issuing command to start program");
-                enable.setParam("src_region", plugin.getRegion());
-                enable.setParam("src_agent", plugin.getAgent());
-                enable.setParam("src_plugin", plugin.getPluginID());
-                enable.setParam("dst_region", plugin.getRegion());
-                //enable.setParam("dst_agent", plugin.getAgent());
-                logger.error("getAgent:" + plugin.getAgent() + " targetLocation:" + targetLocation);
-                enable.setParam("dst_agent", targetLocation);
-                enable.setParam("watchdogtimer", "5000");
-                enable.setParam("action", "add");
-                String watcherID = java.util.UUID.randomUUID().toString();
-                KanonWatcher watcher = new KanonWatcher(watcherID, args.substring(args.indexOf(" ") + 1));
-                new Thread(watcher).start();
-                watchers.put(watcherID, watcher);
-                enable.setParam("configparams", "pluginname=executor-plugin" +
-                        ",jarfile=executor/target/executor-plugin-0.1.0.jar" +
-                        ",dstPlugin=" + plugin.getPluginID() +
-                        ",requiresSudo=false" +
-                        ",runCommand=" + args.substring(args.indexOf(" ") + 1));
-                try {
-                    logger.error(enable.getParams().toString());
-                    MsgEvent response = plugin.sendRPC(enable);
-                    //plugin.sendMsgEvent(enable);
-                    //MsgEvent response = enable;
-                    if (response != null)
-                        watcher.setPluginID(response.getParam("plugin"));
-                    return Response.ok(watcherID).header("Access-Control-Allow-Origin", "*").build();
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error")
-                            .header("Access-Control-Allow-Origin", "*").build();
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error")
-                        .header("Access-Control-Allow-Origin", "*").build();
-            }
-        } else {
-            try {
-                SimpleDateFormat getTimeZone = new SimpleDateFormat("zzz");
-                String timezone = getTimeZone.format(new Date());
-                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-zzz");
-                //String[] parsedArgs = args.split(" ");
-                //String program = "";
-                //if (parsedArgs.length >= 1)
-                //    program = parsedArgs[0];
-                String programArgs = "";
-                Date start = new Date();
-                Date end = new Date();
-                if (program.equals("perfSONAR_Throughput")) {
-                    if (parsedArgs.length >= 5) {
-                        Calendar temp = Calendar.getInstance();
-                        temp.add(Calendar.SECOND, 60 + Integer.parseInt(parsedArgs[4]));
-                        end = temp.getTime();
-                    }
-                    for (int i = 2; i < parsedArgs.length; i++) {
-                        programArgs += parsedArgs[i] + " ";
-                    }
-                    programArgs = programArgs.trim();
-                } else {
-                    if (parsedArgs.length >= 3) {
-                        try {
-                            start = formatter.parse(parsedArgs[2] + "-" + timezone);
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    if (parsedArgs.length >= 4) {
-                        try {
-                            end = formatter.parse(parsedArgs[3] + "-" + timezone);
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    if (parsedArgs.length >= 5) {
-                        for (int i = 4; i < parsedArgs.length; i++) {
-                            programArgs += parsedArgs[i] + " ";
-                        }
-                        programArgs = programArgs.trim();
-                    }
-                }
-                //String amqp_server = "128.163.217.97";
-                //String amqp_port = "5672";
-                //String amqp_login = "tester";
-                //String amqp_password = "tester01";
-                MsgEvent enable = new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(),
-                        plugin.getPluginID(), "Issuing command to start program");
-                enable.setParam("src_region", plugin.getRegion());
-                enable.setParam("src_agent", plugin.getAgent());
-                enable.setParam("src_plugin", plugin.getPluginID());
-                enable.setParam("dst_region", plugin.getRegion());
-                //enable.setParam("dst_agent", plugin.getAgent());
-                enable.setParam("dst_agent", targetLocation);
-                enable.setParam("watchdogtimer", "5000");
-                enable.setParam("action", "add");
-                String amqp_exchange = java.util.UUID.randomUUID().toString();
-                QueueListener listener = new QueueListener(amqp_server, amqp_login, amqp_password, amqp_exchange, program,
-                        start, end, programArgs);
-                new Thread(listener).start();
-                listeners.put(amqp_exchange, listener);
-                enable.setParam("configparams", "pluginname=executor-plugin" +
-                        ",jarfile=executor/target/executor-plugin-0.1.0.jar" +
-                        ",dstPlugin=" + plugin.getPluginID() +
-                        ",runCommand=" + args.substring(args.indexOf(" ") + 1).replaceAll(",", "\\,") + " " + amqp_server + " " + amqp_port + " " +
-                        amqp_login + " " + amqp_password + " " + amqp_exchange);
-
-                try {
-                    logger.error(enable.getParams().toString());
-                    MsgEvent response = plugin.sendRPC(enable);
-                    if (response != null) {
-                        listener.setPluginID(response.getParam("plugin"));
-                    }
-                    return Response.ok(amqp_exchange).header("Access-Control-Allow-Origin", "*").build();
-                } catch (Exception ex) {
-                    return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error")
-                            .header("Access-Control-Allow-Origin", "*").build();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error")
-                        .header("Access-Control-Allow-Origin", "*").build();
-            }
-        }
-    }
-*/
 
     @GET
     @Path("list")
@@ -771,6 +613,37 @@ public class APIController {
             logger.error("removeApplication Error :" + ex.getMessage());
         }
         return isRemoved;
+    }
+
+    private String addApplication(String gPipelineJSON) {
+        String pipeline_id = null;
+        try {
+
+            MsgEvent add = new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(),
+                    plugin.getPluginID(), "Issuing command to start program");
+            add.setParam("src_region", plugin.getRegion());
+            add.setParam("src_agent", plugin.getAgent());
+            add.setParam("src_plugin", plugin.getPluginID());
+            add.setParam("dst_region", plugin.getRegion());
+
+            add.setParam("globalcmd", Boolean.TRUE.toString());
+            add.setParam("action", "gpipelinesubmit");
+            add.setParam("action_pipelineid", pipeline_id);
+
+            add.setParam("gpipeline_compressed",String.valueOf(Boolean.TRUE));
+            add.setCompressedParam("action_gpipeline",gPipelineJSON);
+
+            MsgEvent response = plugin.sendRPC(add);
+
+            if(response.getParam("gpipeline_id") != null) {
+
+                pipeline_id = response.getParam("gpipeline_id");
+            }
+
+        } catch(Exception ex) {
+            logger.error("addApplication Error :" + ex.getMessage());
+        }
+        return pipeline_id;
     }
 
 
