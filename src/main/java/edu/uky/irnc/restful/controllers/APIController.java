@@ -517,14 +517,81 @@ public class APIController {
 
                 MsgEvent runProcessResponse = plugin.sendRPC(runProcess);
 
-                logger.info("CODY RUNRESPONSE:  " + node.node_id + " " + runProcessResponse.getParams());
-                isEnabled = true;
+                if(runProcessResponse.getParam("status") != null) {
+                    if(Boolean.parseBoolean(runProcessResponse.getParam("status"))) {
+                        logger.info("CODY RUNRESPONSE:  " + node.node_id + " " + runProcessResponse.getParams());
+                        isEnabled = true;
+                    }
+                }
+
+
             }
 
         } catch(Exception ex) {
             logger.error("enableApplication Error " + ex.getMessage());
         }
         return isEnabled;
+    }
+
+    private boolean disableApplication(String pipeline_id) {
+        boolean isDisabled = false;
+        try {
+
+            gPayload gpay = getGpayload(pipeline_id);
+
+            for(gNode node : gpay.nodes) {
+
+                String iNodeId = node.params.get("inode_id");
+                String ResourceId = node.params.get("resource_id");
+
+                MsgEvent getAgent = new MsgEvent(MsgEvent.Type.EXEC, plugin.getRegion(), plugin.getAgent(),
+                        plugin.getPluginID(), "Issuing command to start program");
+                getAgent.setParam("src_region", plugin.getRegion());
+                getAgent.setParam("src_agent", plugin.getAgent());
+                getAgent.setParam("src_plugin", plugin.getPluginID());
+                getAgent.setParam("dst_region", plugin.getRegion());
+                getAgent.setParam("globalcmd", Boolean.TRUE.toString());
+                getAgent.setParam("action", "getisassignmentinfo");
+                getAgent.setParam("action_inodeid", iNodeId);
+                getAgent.setParam("action_resourceid", ResourceId);
+
+                MsgEvent getAgentResponse = plugin.sendRPC(getAgent);
+
+                String isassignmentinfo = getAgentResponse.getCompressedParam("isassignmentinfo");
+
+                Gson gson = new Gson();
+                Type stringStringMap = new TypeToken<Map<String, String>>(){}.getType();
+                Map<String,String> map = gson.fromJson(isassignmentinfo, stringStringMap);
+
+                String region = map.get("region");
+                String agent = map.get("agent");
+                String pluginId = map.get("plugin");
+
+                MsgEvent runProcess = new MsgEvent(MsgEvent.Type.EXEC, plugin.getRegion(), plugin.getAgent(),
+                        plugin.getPluginID(), "Issuing command to start program");
+                runProcess.setParam("src_region", plugin.getRegion());
+                runProcess.setParam("src_agent", plugin.getAgent());
+                runProcess.setParam("src_plugin", plugin.getPluginID());
+                runProcess.setParam("dst_region", region);
+                runProcess.setParam("dst_agent", agent);
+                runProcess.setParam("dst_plugin", pluginId);
+                runProcess.setParam("cmd", "end_process");
+
+                MsgEvent runProcessResponse = plugin.sendRPC(runProcess);
+
+                if(runProcessResponse.getParam("status") != null) {
+                    if(Boolean.parseBoolean(runProcessResponse.getParam("status"))) {
+                        logger.info("CODY RUNRESPONSE:  " + node.node_id + " " + runProcessResponse.getParams());
+                        isDisabled = true;
+                    }
+                }
+
+            }
+
+        } catch(Exception ex) {
+            logger.error("enableApplication Error " + ex.getMessage());
+        }
+        return isDisabled;
     }
 
     private gPayload getGpayload(String pipeline_id) {
@@ -737,6 +804,36 @@ public class APIController {
         return Response.status(500).entity("No such exchange found!")
                 .header("Access-Control-Allow-Origin", "*").build();
     }
+
+    @GET
+    @Path("stop/{amqp_exchange}")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
+    public Response stop(@PathParam("amqp_exchange") String amqp_exchange) {
+        logger.trace("Call to start()");
+        logger.debug("amqp_exchange: {}", amqp_exchange);
+        try {
+
+            ////end_process
+            String pipeline_id = activeApplications.get(amqp_exchange);
+            //applicaiton is readed enable it
+            String status_code = "-1";
+            if(disableApplication(pipeline_id)) {
+                status_code = "10";
+            } else {
+                status_code = "9";
+            }
+
+            return Response.ok(status_code).header("Access-Control-Allow-Origin", "*").build();
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Response.status(500).entity("No such exchange found!")
+                .header("Access-Control-Allow-Origin", "*").build();
+    }
+
+
 
     @GET
     @Path("results/{amqp_exchange}")
