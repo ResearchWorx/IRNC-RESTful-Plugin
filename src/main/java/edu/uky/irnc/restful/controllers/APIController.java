@@ -128,7 +128,7 @@ public class APIController {
                 if(type.startsWith("/")) {
                     type = type.replaceFirst("/","");
                 }
-                String runcommand = startingDir + type + node.commands + " " + queueAppend;
+                String runcommand = startingDir + type + " " + app.duration + " " + node.commands + " " + queueAppend;
 
                 Map<String, String> n0Params = new HashMap<>();
                 n0Params.put("pluginname", "executor-plugin");
@@ -268,14 +268,14 @@ public class APIController {
             }
 
             //get queue ready
-/*
+
             Date start = new Date();
             Date end = new Date();
             Calendar temp_er = Calendar.getInstance();
-            temp_er.add(Calendar.MINUTE, 6000);
+            temp_er.add(Calendar.SECOND, app.duration);
             end = temp_er.getTime();
 
-
+/*
             QueueListener listener = new QueueListener(qhost, qlogin, qpassword, qhost, "filler",
                     start, end, "filler");
             new Thread(listener).start();

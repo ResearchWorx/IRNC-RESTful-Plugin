@@ -13,19 +13,22 @@ public class mApp {
 	  public String name;
 	  public int status_code;
 	  public String status_desc;
+	  public int duration;
 
 	  public List<mNode> nodes;
 
-	  public mApp(String name, List<mNode> nodes)
+	  public mApp(String name, int duration, List<mNode> nodes)
 	  {
 	  	this.name = name;
+	  	this.duration = duration;
 		  this.nodes = nodes;
 		  this.status_code = 1;
 		  this.status_desc = "Record Created";
 	  }
-	  public mApp(String name)
+	  public mApp(String name, int duration)
 	  {
 		  this.name = name;
+		  this.duration = duration;
 		this.nodes = new ArrayList<>();
 		  this.status_code = 1;
 		  this.status_desc = "Record Created";
