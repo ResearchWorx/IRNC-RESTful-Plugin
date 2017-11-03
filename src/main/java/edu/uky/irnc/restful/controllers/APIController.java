@@ -188,6 +188,13 @@ public class APIController {
 
             String jsonString = crunchifyBuilder.toString();
 
+            logger.info("ADD POST: " + jsonString);
+            mApp app = new Gson().fromJson(jsonString,mApp.class);
+
+            logger.info("App: " + app.name + " nodes:");
+            for(mNode node : app.nodes) {
+                logger.info("Node name: " + node.name + " type:" + node.type + " command:" + node.commands);
+            }
 
                 returnString = "ok";
 
