@@ -520,10 +520,18 @@ public class APIController {
                 this.disposer = new Timer();
                 this.disposer.schedule(new DisposeTask(), RESULTS_TIMEOUT);
             }
+            /*
             HashSet<String> resultMessages;
             synchronized (this.resultsLock) {
                 resultMessages = new HashSet<>(this.results);
             }
+            */
+
+            String resultMessage = null;
+            synchronized (this.resultsLock) {
+                resultMessage = this.results;
+            }
+
             List<String> logMessages = new ArrayList<>();
             synchronized (this.logLock) {
                 List<Long> keys = new ArrayList<>(logs.keySet());
@@ -551,7 +559,7 @@ public class APIController {
             if (logMessages.size() > 0) {
                 ret.deleteCharAt(ret.lastIndexOf(","));
             }
-            ret.append("],\"results\":" + results);
+            ret.append("],\"results\":" + resultMessage);
 
             /*
             ret.append("],\"results\":[");
