@@ -104,14 +104,13 @@ public class APIController {
             end = temp_er.getTime();
 
 
-            QueueListener listener = new QueueListener(qhost, qlogin, qpassword, qname, app.name,
-                    start, end, "N/A");
+            QueueListener listener = new QueueListener(qhost, qlogin, qpassword, qname, app.name, jsonString, app);
             new Thread(listener).start();
             listeners.put(qname, listener);
 
             String cadlJSON = mAppToCADL(app);
 
-            logger.info("CADLJSON: " + cadlJSON);
+            //logger.info("CADLJSON: " + cadlJSON);
 
             String pipeline_id = addApplication(cadlJSON);
 
@@ -144,6 +143,7 @@ public class APIController {
 
                 returnString = qname;
 
+
                 //return Response.ok(qname).header("Access-Control-Allow-Origin", "*").build();
             } catch (Exception ex) {
 
@@ -165,139 +165,6 @@ public class APIController {
         //return Response.status(200).entity("woot2").build();
         //return Response.ok(returnString, MediaType.APPLICATION_JSON_TYPE).build();
         return Response.ok(returnString).header("Access-Control-Allow-Origin", "*").build();
-    }
-
-    @GET
-    @Path("submit/{args:.*}")
-    @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
-    public Response submit(@PathParam("args") String args) {
-        logger.trace("Call to submit({})", args);
-        String[] parsedArgs = args.split(" ");
-        if (parsedArgs.length < 2) {
-            return Response.status(Response.Status.OK).entity("Invalid arguments issued: " + args)
-                    .header("Access-Control-Allow-Origin", "*").build();
-        }
-        String targetLocation = parsedArgs[0];
-        String program = parsedArgs[1];
-
-            try {
-                SimpleDateFormat getTimeZone = new SimpleDateFormat("zzz");
-                String timezone = getTimeZone.format(new Date());
-                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-zzz");
-                //String[] parsedArgs = args.split(" ");
-                //String program = "";
-                //if (parsedArgs.length >= 1)
-                //    program = parsedArgs[0];
-                String programArgs = "";
-                Date start = new Date();
-                Date end = new Date();
-                Calendar temp_er = Calendar.getInstance();
-                temp_er.add(Calendar.SECOND, 60);
-                end = temp_er.getTime();
-
-                if (program.equals("perfSONAR_Throughput")) {
-                    if (parsedArgs.length >= 5) {
-                        Calendar temp = Calendar.getInstance();
-                        temp.add(Calendar.SECOND, 60 + Integer.parseInt(parsedArgs[4]));
-                        end = temp.getTime();
-                    }
-                    for (int i = 2; i < parsedArgs.length; i++) {
-                        programArgs += parsedArgs[i] + " ";
-                    }
-                    programArgs = programArgs.trim();
-                } else {
-                    if (parsedArgs.length >= 3) {
-                        try {
-                            start = formatter.parse(parsedArgs[2] + "-" + timezone);
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    if (parsedArgs.length >= 4) {
-                        try {
-                            end = formatter.parse(parsedArgs[3] + "-" + timezone);
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    if (parsedArgs.length >= 5) {
-                        for (int i = 4; i < parsedArgs.length; i++) {
-                            programArgs += parsedArgs[i] + " ";
-                        }
-                        programArgs = programArgs.trim();
-                    }
-                }
-
-
-                String amqp_exchange = java.util.UUID.randomUUID().toString();
-                QueueListener listener = new QueueListener(amqp_server, amqp_login, amqp_password, amqp_exchange, program,
-                        start, end, programArgs);
-                new Thread(listener).start();
-                listeners.put(amqp_exchange, listener);
-
-
-                String runCommand = args.substring(args.indexOf(" ") + 1).replaceAll(",", "\\,") + " " + amqp_server + " " + amqp_port + " " + amqp_login + " " + amqp_password + " " + amqp_exchange;
-                //enable.setParam("gpipeline_compressed",String.valueOf(Boolean.TRUE));
-                //enable.setCompressedParam("action_gpipeline",generateCADL(runCommand,targetLocation));
-
-                String gPipelineJSON = generateCADL(runCommand,targetLocation);
-                String pipeline_id = addApplication(gPipelineJSON);
-
-
-                try {
-
-                    if (pipeline_id != null) {
-
-
-                        //todo make this much cleaner
-                        //adding application and exchange reference
-                        activeApplications.put(amqp_exchange,pipeline_id);
-                        //Thread.sleep(3000);
-
-                        //int status = getPipelineStatus(pipeline_id);
-                        int status = -2;
-
-                        while(!(status == 10) && (status != -1)) {
-                            Thread.sleep(3000);
-                            if(status == -1) {
-                                logger.error("Problem with Pipeline Check ! Status -1");
-                            }
-                            status = getPipelineStatus(pipeline_id);
-                            logger.info("pipeline_id: " + pipeline_id + " status:" + status);
-                        }
-
-                        //applicaiton is readed enable it
-                        enableApplication(pipeline_id);
-
-                    } else {
-                        logger.error("pipeline_id = null");
-                    }
-
-
-
-                    return Response.ok(amqp_exchange).header("Access-Control-Allow-Origin", "*").build();
-                } catch (Exception ex) {
-
-                    StringWriter sw = new StringWriter();
-                    ex.printStackTrace(new PrintWriter(sw));
-                    String exceptionAsString = sw.toString();
-                    logger.error(exceptionAsString);
-
-                    return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error")
-                            .header("Access-Control-Allow-Origin", "*").build();
-                }
-            } catch (Exception e) {
-
-                StringWriter sw = new StringWriter();
-                e.printStackTrace(new PrintWriter(sw));
-                String exceptionAsString = sw.toString();
-                logger.error(exceptionAsString);
-
-                e.printStackTrace();
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error")
-                        .header("Access-Control-Allow-Origin", "*").build();
-            }
-
     }
 
     @GET
@@ -460,6 +327,7 @@ public class APIController {
     public static class QueueListener implements Runnable {
         private static final long LISTENER_TIMEOUT = 1000 * 60 * 5;
         private static final long RESULTS_TIMEOUT = 1000 * 60 * 60;
+        private mApp app;
         private String amqp_server;
         private String amqp_login;
         private String amqp_password;
@@ -467,9 +335,6 @@ public class APIController {
         private String pluginID;
         private String program;
         private Date issued;
-        private Date start;
-        private Date end;
-        private String programArgs;
         private Timer closer;
         private Timer disposer;
 
@@ -483,16 +348,14 @@ public class APIController {
         private HashSet<String> results = new HashSet<>();
 
         QueueListener(String amqp_server, String amqp_login, String amqp_password, String amqp_queue_name,
-                      String program, Date start, Date end, String programArgs) {
+                      String program, String jsonString, mApp app) {
+            this.app = app;
             this.amqp_server = amqp_server;
             this.amqp_login = amqp_login;
             this.amqp_password = amqp_password;
             this.amqp_exchange = amqp_queue_name;
             this.program = program;
             this.issued = new Date();
-            this.start = start;
-            this.end = end;
-            this.programArgs = programArgs;
             this.closer = null;
             this.disposer = null;
         }
@@ -577,7 +440,10 @@ public class APIController {
                         QueueingConsumer.Delivery delivery = consumer.nextDelivery(500);
                         if (delivery != null) {
                             synchronized (this.resultsLock) {
-                                this.results.add(new String(delivery.getBody()).trim());
+                                String str = new String(delivery.getBody()).trim();
+                                logger.error("*" + str + "*");
+                                this.results.add(str);
+                                //this.results.add(new String(delivery.getBody()).trim());
                             }
                         }
                     } catch (InterruptedException e) {
@@ -641,10 +507,8 @@ public class APIController {
             return "{\"exchange\":\"" + this.amqp_exchange +
                     "\",\"state\":\"" + this.getState() +
                     "\",\"issued\":\"" + this.issued +
-                    "\",\"start\":\"" + this.start +
-                    "\",\"end\":\"" + this.end +
                     "\",\"program\":\"" + this.program +
-                    "\",\"args\":\"" + this.programArgs + "\"}";
+                    "\"}";
         }
 
         String Results() {
@@ -673,14 +537,8 @@ public class APIController {
             ret.append(this.getState());
             ret.append("\",\"issued\":\"");
             ret.append(this.issued);
-            ret.append("\",\"start\":\"");
-            ret.append(this.start);
-            ret.append("\",\"end\":\"");
-            ret.append(this.end);
             ret.append("\",\"program\":\"");
             ret.append(this.program);
-            ret.append("\",\"args\":\"");
-            ret.append(this.programArgs);
             ret.append("\",\"logs\":[");
             for (String logMessage : logMessages) {
                 ret.append("\"");
@@ -690,6 +548,18 @@ public class APIController {
             if (logMessages.size() > 0) {
                 ret.deleteCharAt(ret.lastIndexOf(","));
             }
+            ret.append("],\"results\":");
+            for (String resultMessage : resultMessages) {
+                if (resultMessage.startsWith("{")) {
+                    ret.append(resultMessage);
+                    ret.append(",");
+                } else {
+                    ret.append("\"");
+                    ret.append(resultMessage);
+                    ret.append("\",");
+                }
+            }
+            /*
             ret.append("],\"results\":[");
             for (String resultMessage : resultMessages) {
                 if (resultMessage.startsWith("{")) {
@@ -701,11 +571,14 @@ public class APIController {
                     ret.append("\",");
                 }
             }
+
             if (resultMessages.size() > 0) {
                 ret.deleteCharAt(ret.lastIndexOf(","));
             }
             ret.append("]");
+            */
             ret.append("}");
+
             return ret.toString();
         }
 
@@ -1252,4 +1125,140 @@ public class APIController {
         return pipeline_id;
     }
 
+
+    /*
+    @GET
+    @Path("submit/{args:.*}")
+    @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
+    public Response submit(@PathParam("args") String args) {
+        logger.trace("Call to submit({})", args);
+        String[] parsedArgs = args.split(" ");
+        if (parsedArgs.length < 2) {
+            return Response.status(Response.Status.OK).entity("Invalid arguments issued: " + args)
+                    .header("Access-Control-Allow-Origin", "*").build();
+        }
+        String targetLocation = parsedArgs[0];
+        String program = parsedArgs[1];
+
+            try {
+                SimpleDateFormat getTimeZone = new SimpleDateFormat("zzz");
+                String timezone = getTimeZone.format(new Date());
+                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-zzz");
+                //String[] parsedArgs = args.split(" ");
+                //String program = "";
+                //if (parsedArgs.length >= 1)
+                //    program = parsedArgs[0];
+                String programArgs = "";
+                Date start = new Date();
+                Date end = new Date();
+                Calendar temp_er = Calendar.getInstance();
+                temp_er.add(Calendar.SECOND, 60);
+                end = temp_er.getTime();
+
+                if (program.equals("perfSONAR_Throughput")) {
+                    if (parsedArgs.length >= 5) {
+                        Calendar temp = Calendar.getInstance();
+                        temp.add(Calendar.SECOND, 60 + Integer.parseInt(parsedArgs[4]));
+                        end = temp.getTime();
+                    }
+                    for (int i = 2; i < parsedArgs.length; i++) {
+                        programArgs += parsedArgs[i] + " ";
+                    }
+                    programArgs = programArgs.trim();
+                } else {
+                    if (parsedArgs.length >= 3) {
+                        try {
+                            start = formatter.parse(parsedArgs[2] + "-" + timezone);
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if (parsedArgs.length >= 4) {
+                        try {
+                            end = formatter.parse(parsedArgs[3] + "-" + timezone);
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if (parsedArgs.length >= 5) {
+                        for (int i = 4; i < parsedArgs.length; i++) {
+                            programArgs += parsedArgs[i] + " ";
+                        }
+                        programArgs = programArgs.trim();
+                    }
+                }
+
+
+                String amqp_exchange = java.util.UUID.randomUUID().toString();
+                QueueListener listener = new QueueListener(amqp_server, amqp_login, amqp_password, amqp_exchange, program,
+                        start, end, programArgs);
+                new Thread(listener).start();
+                listeners.put(amqp_exchange, listener);
+
+
+                String runCommand = args.substring(args.indexOf(" ") + 1).replaceAll(",", "\\,") + " " + amqp_server + " " + amqp_port + " " + amqp_login + " " + amqp_password + " " + amqp_exchange;
+                //enable.setParam("gpipeline_compressed",String.valueOf(Boolean.TRUE));
+                //enable.setCompressedParam("action_gpipeline",generateCADL(runCommand,targetLocation));
+
+                String gPipelineJSON = generateCADL(runCommand,targetLocation);
+                String pipeline_id = addApplication(gPipelineJSON);
+
+
+                try {
+
+                    if (pipeline_id != null) {
+
+
+                        //todo make this much cleaner
+                        //adding application and exchange reference
+                        activeApplications.put(amqp_exchange,pipeline_id);
+                        //Thread.sleep(3000);
+
+                        //int status = getPipelineStatus(pipeline_id);
+                        int status = -2;
+
+                        while(!(status == 10) && (status != -1)) {
+                            Thread.sleep(3000);
+                            if(status == -1) {
+                                logger.error("Problem with Pipeline Check ! Status -1");
+                            }
+                            status = getPipelineStatus(pipeline_id);
+                            logger.info("pipeline_id: " + pipeline_id + " status:" + status);
+                        }
+
+                        //applicaiton is readed enable it
+                        enableApplication(pipeline_id);
+
+                    } else {
+                        logger.error("pipeline_id = null");
+                    }
+
+
+
+                    return Response.ok(amqp_exchange).header("Access-Control-Allow-Origin", "*").build();
+                } catch (Exception ex) {
+
+                    StringWriter sw = new StringWriter();
+                    ex.printStackTrace(new PrintWriter(sw));
+                    String exceptionAsString = sw.toString();
+                    logger.error(exceptionAsString);
+
+                    return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error")
+                            .header("Access-Control-Allow-Origin", "*").build();
+                }
+            } catch (Exception e) {
+
+                StringWriter sw = new StringWriter();
+                e.printStackTrace(new PrintWriter(sw));
+                String exceptionAsString = sw.toString();
+                logger.error(exceptionAsString);
+
+                e.printStackTrace();
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error")
+                        .header("Access-Control-Allow-Origin", "*").build();
+            }
+
+    }
+
+     */
 }
