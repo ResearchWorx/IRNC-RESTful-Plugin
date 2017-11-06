@@ -35,7 +35,6 @@ public class APIController {
 
     public static ConcurrentHashMap<String, String> activeApplications = new ConcurrentHashMap<>();
     public static ConcurrentHashMap<String, QueueListener> listeners = new ConcurrentHashMap<>();
-    private static ConcurrentHashMap<String, KanonWatcher> watchers = new ConcurrentHashMap<>();
     private static Plugin plugin;
     private static CLogger logger;
     private static String amqp_server;
@@ -52,176 +51,6 @@ public class APIController {
         amqp_login = plugin.getConfig().getStringParam("amqp_login", "tester");
         amqp_password = plugin.getConfig().getStringParam("amqp_password", "tester01");
     }
-
-    @GET
-    @Path("badpacket")
-    @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
-    public Response badPacket() {
-        logger.trace("Call to badPacket()");
-        try {
-            MsgEvent enable = new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(),
-                    plugin.getPluginID(), "Issuing command to start badpacket executor");
-            enable.setParam("src_region", plugin.getRegion());
-            enable.setParam("src_agent", plugin.getAgent());
-            enable.setParam("src_plugin", plugin.getPluginID());
-            enable.setParam("dst_region", plugin.getRegion());
-            enable.setParam("dst_agent", plugin.getAgent());
-            enable.setParam("watchdogtimer", "5000");
-            enable.setParam("action", "enable");
-            enable.setParam("configparams", "pluginname=executor-plugin" +
-                    ",jarfile=executor/target/executor-plugin-0.1.0.jar" +
-                    ",dstPlugin=" + plugin.getPluginID() +
-                    ",runCommand=sendudp e4:1d:2d:0e:a6:c0 128.163.202.51 8080 p2p2 10");
-            plugin.sendMsgEvent(enable);
-            return Response.ok("Program starting...").header("Access-Control-Allow-Origin", "*").build();
-        } catch (Exception e) {
-            logger.error("badPacket() : {}", e.getMessage());
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error : " +
-                    e.getMessage()).header("Access-Control-Allow-Origin", "*").build();
-        }
-    }
-
-    @GET
-    @Path("kanon")
-    @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
-    public Response kAnon() {
-        logger.trace("Call to kAnon()");
-        try {
-            MsgEvent enable = new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(),
-                    plugin.getPluginID(), "Issuing command to start kanon executor");
-            enable.setParam("src_region", plugin.getRegion());
-            enable.setParam("src_agent", plugin.getAgent());
-            enable.setParam("src_plugin", plugin.getPluginID());
-            enable.setParam("dst_region", plugin.getRegion());
-            enable.setParam("dst_agent", plugin.getAgent());
-            enable.setParam("watchdogtimer", "5000");
-            enable.setParam("action", "enable");
-            enable.setParam("configparams", "pluginname=executor-plugin" +
-                    ",jarfile=executor/target/executor-plugin-0.1.0.jar" +
-                    ",dstPlugin=" + plugin.getPluginID() +
-                    ",requiresSudo=false" +
-                    ",runCommand=kanon 10000 100 " + amqp_server + " " + amqp_port + " pmacct kanonex_read " + amqp_server + " " + amqp_port + " kanonex_write_e 1 0 0 'irnc_user' 'u$export01' 'irnc_user' 'u$export01'");
-            plugin.sendMsgEvent(enable);
-            return Response.ok("Program starting...").header("Access-Control-Allow-Origin", "*").build();
-        } catch (Exception e) {
-            logger.error("kAnon() : {}", e.getMessage());
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error : " +
-                    e.getMessage()).header("Access-Control-Allow-Origin", "*").build();
-        }
-    }
-
-    public String mAppToCADL(mApp app) {
-        String cadlJSON = null;
-
-        try {
-            Gson gson = new GsonBuilder().create();
-
-            List<gNode> gNodes = new ArrayList<>();
-            List<gEdge> gEdges = new ArrayList<>();
-
-            for (mNode node : app.nodes) {
-                logger.info("Node name: " + node.name + " type:" + node.type + " command:" + node.commands);
-
-                String queueAppend = node.qhost + " " + node.qport + " " + node.qlogin + " " + node.qpassword + " " + node.qname;
-                String startingDir = "/home/yan/AMIS/amis/uml/";
-                String type = node.type;
-                if(type.startsWith("/")) {
-                    type = type.replaceFirst("/","");
-                }
-                String runcommand = startingDir + type + " " + app.duration + " " + node.commands + " " + queueAppend;
-
-                Map<String, String> n0Params = new HashMap<>();
-                n0Params.put("pluginname", "executor-plugin");
-                n0Params.put("jarfile", "executor/target/executor-plugin-0.1.0.jar");
-
-                n0Params.put("runCommand", runcommand);
-                n0Params.put("location", node.location);
-                n0Params.put("watchdogtimer", "5000");
-                //add information related to issuing plugin
-                n0Params.put("dstRegion", plugin.getRegion());
-                n0Params.put("dstAgent", plugin.getAgent());
-                n0Params.put("dstPlugin", plugin.getPluginID());
-                gNodes.add(new gNode(node.type, node.name, node.id, n0Params));
-            }
-
-            gEdge e0 = new gEdge("0", "1000000", "1000000");
-            gEdges.add(e0);
-
-
-            gPayload gpay = new gPayload(gNodes, gEdges);
-            gpay.pipeline_id = app.id;
-            gpay.pipeline_name = app.name;
-            cadlJSON = gson.toJson(gpay);
-
-        } catch(Exception ex) {
-            logger.error("mAppToCADL Error : " + ex.getMessage());
-        }
-
-        return cadlJSON;
-
-    }
-
-
-    public String generateCADL(String runcommand, String targetLocation) {
-        //MsgEvent me = new MsgEvent(MsgEvent.Type.CONFIG, null, null, null, "get resourceinventory inventory");
-        //me.setParam("globalcmd", Boolean.TRUE.toString());
-
-        //me.setParam("action", "gpipelinesubmit");
-        //me.setParam("action_tenantid","0");
-
-        Gson gson = new GsonBuilder().create();
-
-        Map<String,String> n0Params = new HashMap<>();
-        n0Params.put("pluginname","executor-plugin");
-        n0Params.put("jarfile","executor/target/executor-plugin-0.1.0.jar");
-        n0Params.put("runCommand", runcommand);
-        n0Params.put("location",targetLocation);
-        n0Params.put("watchdogtimer", "5000");
-        //add information related to issuing plugin
-        n0Params.put("dstRegion", plugin.getRegion());
-        n0Params.put("dstAgent", plugin.getAgent());
-        n0Params.put("dstPlugin", plugin.getPluginID());
-
-//APP CONFIG
-        /*
-        try {
-            String command = "60 10  4  11  12  20  21  23  16";
-            mApp app = new mApp("my test");
-            //mNode(String type, String name, String commands)
-            mNode node = new mNode("Netflow-DPDK-NORSSuml/Netflow-DPDK-NORSS/run_exe.sh", "UK Netflow", command);
-            node.qname = "exchange-name-0";
-            node.qhost = "128.163.217.97";
-            node.qport = "5821";
-            node.qlogin = "sr";
-            node.qpassword = "u$sr01";
-            app.nodes.add(node);
-
-            logger.info(gson.toJson(app));
-        } catch(Exception ex) {
-            logger.error("CADL create error: " + ex.getMessage());
-            StringWriter sw = new StringWriter();
-            ex.printStackTrace(new PrintWriter(sw));
-            String exceptionAsString = sw.toString();
-            logger.error(exceptionAsString);
-        }
-*/
-        List<gNode> gNodes = new ArrayList<>();
-        gNodes.add(new gNode("dummy", "uk", "0", n0Params));
-        gEdge e0 = new gEdge("0","1000000","1000000");
-
-        List<gEdge> gEdges = new ArrayList<>();
-        gEdges.add(e0);
-
-        gPayload gpay = new gPayload(gNodes,gEdges);
-        gpay.pipeline_id = "0";
-        gpay.pipeline_name = "demo_pipeline";
-        String json = gson.toJson(gpay);
-
-
-        return json;
-
-    }
-
 
     @POST
     @Path("/add")
@@ -468,6 +297,573 @@ public class APIController {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal Server Error")
                         .header("Access-Control-Allow-Origin", "*").build();
             }
+
+    }
+
+    @GET
+    @Path("list")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
+    public Response list() {
+        logger.trace("Call to list()");
+        try {
+            StringBuilder sb = new StringBuilder();
+            sb.append("[");
+            for (QueueListener listener : listeners.values()) {
+                sb.append(listener.getListing());
+                sb.append(",");
+            }
+            if (listeners.size() > 0) {
+                sb.deleteCharAt(sb.lastIndexOf(","));
+            }
+            sb.append("]");
+            return Response.ok(sb.toString()).header("Access-Control-Allow-Origin", "*").build();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Response.status(500).entity("An exception has occured!")
+                .header("Access-Control-Allow-Origin", "*").build();
+    }
+
+    @GET
+    @Path("status/{amqp_exchange}")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
+    public Response status(@PathParam("amqp_exchange") String amqp_exchange) {
+        logger.trace("Call to start()");
+        logger.debug("amqp_exchange: {}", amqp_exchange);
+        try {
+
+            String pipeline_id = activeApplications.get(amqp_exchange);
+            //applicaiton is readed enable it
+            String status_code = "-1";
+            if(statusApplication(pipeline_id)) {
+                status_code = "10";
+            } else {
+                status_code = "9";
+            }
+
+            return Response.ok(status_code).header("Access-Control-Allow-Origin", "*").build();
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Response.status(500).entity("No such exchange found!")
+                .header("Access-Control-Allow-Origin", "*").build();
+    }
+
+    @GET
+    @Path("start/{amqp_exchange}")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
+    public Response start(@PathParam("amqp_exchange") String amqp_exchange) {
+        logger.trace("Call to start()");
+        logger.debug("amqp_exchange: {}", amqp_exchange);
+        try {
+
+            QueueListener listener = listeners.get(amqp_exchange);
+            if (listener != null) {
+                //clear results on start in case of restart
+                if(!listener.results.isEmpty()) {
+                    listener.clearResults();
+                }
+            }
+
+            String pipeline_id = activeApplications.get(amqp_exchange);
+            //applicaiton is readed enable it
+            String status_code = "-1";
+            if(enableApplication(pipeline_id)) {
+                status_code = "10";
+            } else {
+                status_code = "9";
+            }
+
+            return Response.ok(status_code).header("Access-Control-Allow-Origin", "*").build();
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Response.status(500).entity("No such exchange found!")
+                .header("Access-Control-Allow-Origin", "*").build();
+    }
+
+    @GET
+    @Path("stop/{amqp_exchange}")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
+    public Response stop(@PathParam("amqp_exchange") String amqp_exchange) {
+        logger.trace("Call to start()");
+        logger.debug("amqp_exchange: {}", amqp_exchange);
+        try {
+
+            ////end_process
+            String pipeline_id = activeApplications.get(amqp_exchange);
+            //applicaiton is readed enable it
+            String status_code = "-1";
+            if(disableApplication(pipeline_id)) {
+                status_code = "10";
+            } else {
+                status_code = "9";
+            }
+
+            return Response.ok(status_code).header("Access-Control-Allow-Origin", "*").build();
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Response.status(500).entity("No such exchange found!")
+                .header("Access-Control-Allow-Origin", "*").build();
+    }
+
+    @GET
+    @Path("results/{amqp_exchange}")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
+    public Response results(@PathParam("amqp_exchange") String amqp_exchange) {
+        logger.trace("Call to results()");
+        logger.debug("amqp_exchange: {}", amqp_exchange);
+        try {
+            QueueListener listener = listeners.get(amqp_exchange);
+            if (listener != null) {
+                return Response.ok(listener.Results()).header("Access-Control-Allow-Origin", "*").build();
+            } else {
+                return Response.ok(listeners.keySet().toString()).header("Access-Control-Allow-Origin", "*").build();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Response.status(500).entity("No such exchange found!")
+                .header("Access-Control-Allow-Origin", "*").build();
+    }
+
+    @GET
+    @Path("close/{amqp_exchange}")
+    @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
+    public Response closeListener(@PathParam("amqp_exchange") String amqp_exchange) {
+        logger.trace("Call to closeListener()");
+        logger.debug("amqp_exchange: {}", amqp_exchange);
+        QueueListener listener;
+        if ((listener = listeners.get(amqp_exchange)) != null) {
+            listener.kill();
+            listeners.remove(amqp_exchange);
+            //todo remove plugins
+            //remove plugins
+            String pipeline_id = activeApplications.get(amqp_exchange);
+            if(!removeApplication(pipeline_id)) {
+                logger.error("Could not remove application: " + pipeline_id + " exchange_id:" + amqp_exchange);
+            }
+            return Response.ok("QueryListener Disposed").header("Access-Control-Allow-Origin", "*").build();
+        }
+
+        return Response.status(500).entity("No such listener or watcher found or has already been closed!")
+                .header("Access-Control-Allow-Origin", "*").build();
+    }
+
+    public static class QueueListener implements Runnable {
+        private static final long LISTENER_TIMEOUT = 1000 * 60 * 5;
+        private static final long RESULTS_TIMEOUT = 1000 * 60 * 60;
+        private String amqp_server;
+        private String amqp_login;
+        private String amqp_password;
+        private String amqp_exchange;
+        private String pluginID;
+        private String program;
+        private Date issued;
+        private Date start;
+        private Date end;
+        private String programArgs;
+        private Timer closer;
+        private Timer disposer;
+
+        private boolean processing = true;
+        private boolean running = true;
+        private boolean alive = true;
+
+        private final Object logLock = new Object();
+        private HashMap<Long, String> logs = new HashMap<>();
+        private final Object resultsLock = new Object();
+        private HashSet<String> results = new HashSet<>();
+
+        QueueListener(String amqp_server, String amqp_login, String amqp_password, String amqp_queue_name,
+                      String program, Date start, Date end, String programArgs) {
+            this.amqp_server = amqp_server;
+            this.amqp_login = amqp_login;
+            this.amqp_password = amqp_password;
+            this.amqp_exchange = amqp_queue_name;
+            this.program = program;
+            this.issued = new Date();
+            this.start = start;
+            this.end = end;
+            this.programArgs = programArgs;
+            this.closer = null;
+            this.disposer = null;
+        }
+
+        class CloseTask extends TimerTask {
+            @Override
+            public void run() {
+                close();
+            }
+        }
+
+        class DisposeTask extends TimerTask {
+            @Override
+            public void run() {
+                dispose();
+            }
+        }
+
+        public void clearResults() {
+            this.results.clear();
+        }
+
+        @Override
+        public void run() {
+            ConnectionFactory factory = new ConnectionFactory();
+            factory.setHost(this.amqp_server);
+            factory.setUsername(this.amqp_login);
+            factory.setPassword(this.amqp_password);
+            factory.setConnectionTimeout(10000);
+            Connection connection;
+            try {
+                try {
+                    connection = factory.newConnection();
+                } catch (IOException e) {
+                    logger.error("Failed to create AMQP connection... {}", e.getMessage());
+                    return;
+                }
+                Channel rx_channel;
+                try {
+                    rx_channel = connection.createChannel();
+                } catch (IOException e) {
+                    logger.error("Failed to create receiving channel... {}", e.getMessage());
+                    return;
+                }
+                try {
+                    //rx_channel.exchangeDeclare(this.amqp_exchange, "direct");
+                    //rx_channel.exchangeDeclare(this.amqp_exchange, "fanout", false, false, true, null);
+                    rx_channel.exchangeDeclare(this.amqp_exchange, "fanout");
+
+                    //exchangeDeclare(java.lang.String exchange, java.lang.String type, boolean passive, boolean durable, boolean autoDelete, java.util.Map<java.lang.String,java.lang.Object> arguments)
+
+
+
+                } catch (IOException e) {
+                    logger.error("Failed to declare exchange... {}", e.getMessage());
+                    return;
+                }
+                String queueName;
+                try {
+                    queueName = rx_channel.queueDeclare().getQueue();
+                } catch (IOException e) {
+                    logger.error("Failed to declare queue in exchange... {}", e.getMessage());
+                    return;
+                }
+                try {
+                    rx_channel.queueBind(queueName, this.amqp_exchange, "");
+                } catch (IOException e) {
+                    logger.error("Failed to bind to queue... {}", e.getMessage());
+                    return;
+                }
+                QueueingConsumer consumer;
+                try {
+                    consumer = new QueueingConsumer(rx_channel);
+                    rx_channel.basicConsume(queueName, true, consumer);
+                } catch (IOException e) {
+                    logger.error("Failed to attach consumer to channel... {}", e.getMessage());
+                    return;
+                }
+
+                while (this.running) {
+                    try {
+                        QueueingConsumer.Delivery delivery = consumer.nextDelivery(500);
+                        if (delivery != null) {
+                            synchronized (this.resultsLock) {
+                                this.results.add(new String(delivery.getBody()).trim());
+                            }
+                        }
+                    } catch (InterruptedException e) {
+                        logger.error("Queue consumer tapped out early... {}", e.getMessage());
+                    }
+                }
+                try {
+                    rx_channel.queueDelete(queueName);
+                } catch (IOException e) {
+                    logger.error("Failed to close queue... {}", e.getMessage());
+                    return;
+                }
+                try {
+                    rx_channel.exchangeDelete(this.amqp_exchange);
+                } catch (IOException e) {
+                    logger.error("Failed to close exchange... {}", e.getMessage());
+                    return;
+                }
+                try {
+                    rx_channel.close();
+                } catch (IOException e) {
+                    logger.error("Failed to close channel... {}", e.getMessage());
+                    return;
+                }
+                try {
+                    connection.close();
+                } catch (IOException e) {
+                    logger.error("Failed to close connection... {}", e.getMessage());
+                }
+                try {
+                    while (this.alive) {
+                        Thread.sleep(1000);
+                    }
+                    listeners.remove(this.amqp_exchange);
+                } catch (InterruptedException e) {
+                    // This can happen and is fine
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void log(String ts, String log) {
+            synchronized (logLock) {
+                this.logs.put(Long.parseLong(ts), log);
+            }
+        }
+
+        private String getState() {
+            if (this.processing)
+                return "Executing";
+            else if (this.running)
+                return "Listening";
+            else if (this.alive)
+                return "Holding Data";
+            else
+                return "Shutting Down";
+        }
+
+        String getListing() {
+            return "{\"exchange\":\"" + this.amqp_exchange +
+                    "\",\"state\":\"" + this.getState() +
+                    "\",\"issued\":\"" + this.issued +
+                    "\",\"start\":\"" + this.start +
+                    "\",\"end\":\"" + this.end +
+                    "\",\"program\":\"" + this.program +
+                    "\",\"args\":\"" + this.programArgs + "\"}";
+        }
+
+        String Results() {
+            if (this.disposer != null) {
+                this.disposer.cancel();
+                this.disposer = new Timer();
+                this.disposer.schedule(new DisposeTask(), RESULTS_TIMEOUT);
+            }
+            HashSet<String> resultMessages;
+            synchronized (this.resultsLock) {
+                resultMessages = new HashSet<>(this.results);
+            }
+            List<String> logMessages = new ArrayList<>();
+            synchronized (this.logLock) {
+                List<Long> keys = new ArrayList<>(logs.keySet());
+                Collections.sort(keys);
+                for (Long key : keys) {
+                    logMessages.add(StringEscapeUtils.escapeJavaScript(logs.get(key)));
+                }
+            }
+            StringBuilder ret = new StringBuilder();
+            ret.append("{");
+            ret.append("\"exchange\":\"");
+            ret.append(this.amqp_exchange);
+            ret.append("\",\"state\":\"");
+            ret.append(this.getState());
+            ret.append("\",\"issued\":\"");
+            ret.append(this.issued);
+            ret.append("\",\"start\":\"");
+            ret.append(this.start);
+            ret.append("\",\"end\":\"");
+            ret.append(this.end);
+            ret.append("\",\"program\":\"");
+            ret.append(this.program);
+            ret.append("\",\"args\":\"");
+            ret.append(this.programArgs);
+            ret.append("\",\"logs\":[");
+            for (String logMessage : logMessages) {
+                ret.append("\"");
+                ret.append(logMessage);
+                ret.append("\",");
+            }
+            if (logMessages.size() > 0) {
+                ret.deleteCharAt(ret.lastIndexOf(","));
+            }
+            ret.append("],\"results\":[");
+            for (String resultMessage : resultMessages) {
+                if (resultMessage.startsWith("{")) {
+                    ret.append(resultMessage);
+                    ret.append(",");
+                } else {
+                    ret.append("\"");
+                    ret.append(resultMessage);
+                    ret.append("\",");
+                }
+            }
+            if (resultMessages.size() > 0) {
+                ret.deleteCharAt(ret.lastIndexOf(","));
+            }
+            ret.append("]");
+            ret.append("}");
+            return ret.toString();
+        }
+
+        void setPluginID(String pluginID) {
+            this.pluginID = pluginID;
+        }
+
+        public void done() {
+            this.processing = false;
+            this.closer = new Timer();
+            this.closer.schedule(new CloseTask(), LISTENER_TIMEOUT);
+            this.disposer = new Timer();
+            this.disposer.schedule(new DisposeTask(), RESULTS_TIMEOUT);
+        }
+
+        public void close() {
+            logger.info("Closing Exchange: " + this.amqp_exchange);
+            this.running = false;
+        }
+
+        void dispose() {
+            logger.info("Disposing of Data: " + this.amqp_exchange);
+            this.alive = false;
+        }
+
+        void kill() {
+            logger.info("Destroying QueryListener for: " + this.amqp_exchange);
+            if (this.closer != null) {
+                this.closer.cancel();
+            }
+            if (this.disposer != null) {
+                this.disposer.cancel();
+            }
+            if (this.processing) {
+                Map<String, String> params = new HashMap<>();
+                params.put("src_region", plugin.getRegion());
+                params.put("src_agent", plugin.getAgent());
+                params.put("src_plugin", plugin.getPluginID());
+                params.put("dst_region", plugin.getRegion());
+                params.put("dst_agent", plugin.getAgent());
+                params.put("action", "disable");
+                params.put("plugin", this.pluginID);
+                plugin.sendMsgEvent(new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(),
+                        plugin.getPluginID(), params));
+            }
+            this.running = false;
+            this.alive = false;
+        }
+    }
+
+    public String mAppToCADL(mApp app) {
+        String cadlJSON = null;
+
+        try {
+            Gson gson = new GsonBuilder().create();
+
+            List<gNode> gNodes = new ArrayList<>();
+            List<gEdge> gEdges = new ArrayList<>();
+
+            for (mNode node : app.nodes) {
+                logger.info("Node name: " + node.name + " type:" + node.type + " command:" + node.commands);
+
+                String queueAppend = node.qhost + " " + node.qport + " " + node.qlogin + " " + node.qpassword + " " + node.qname;
+                String startingDir = "/home/yan/AMIS/amis/uml/";
+                String type = node.type;
+                if(type.startsWith("/")) {
+                    type = type.replaceFirst("/","");
+                }
+                String runcommand = startingDir + type + " " + app.duration + " " + node.commands + " " + queueAppend;
+
+                Map<String, String> n0Params = new HashMap<>();
+                n0Params.put("pluginname", "executor-plugin");
+                n0Params.put("jarfile", "executor/target/executor-plugin-0.1.0.jar");
+
+                n0Params.put("runCommand", runcommand);
+                n0Params.put("location", node.location);
+                n0Params.put("watchdogtimer", "5000");
+                //add information related to issuing plugin
+                n0Params.put("dstRegion", plugin.getRegion());
+                n0Params.put("dstAgent", plugin.getAgent());
+                n0Params.put("dstPlugin", plugin.getPluginID());
+                gNodes.add(new gNode(node.type, node.name, node.id, n0Params));
+            }
+
+            gEdge e0 = new gEdge("0", "1000000", "1000000");
+            gEdges.add(e0);
+
+
+            gPayload gpay = new gPayload(gNodes, gEdges);
+            gpay.pipeline_id = app.id;
+            gpay.pipeline_name = app.name;
+            cadlJSON = gson.toJson(gpay);
+
+        } catch(Exception ex) {
+            logger.error("mAppToCADL Error : " + ex.getMessage());
+        }
+
+        return cadlJSON;
+
+    }
+
+    public String generateCADL(String runcommand, String targetLocation) {
+        //MsgEvent me = new MsgEvent(MsgEvent.Type.CONFIG, null, null, null, "get resourceinventory inventory");
+        //me.setParam("globalcmd", Boolean.TRUE.toString());
+
+        //me.setParam("action", "gpipelinesubmit");
+        //me.setParam("action_tenantid","0");
+
+        Gson gson = new GsonBuilder().create();
+
+        Map<String,String> n0Params = new HashMap<>();
+        n0Params.put("pluginname","executor-plugin");
+        n0Params.put("jarfile","executor/target/executor-plugin-0.1.0.jar");
+        n0Params.put("runCommand", runcommand);
+        n0Params.put("location",targetLocation);
+        n0Params.put("watchdogtimer", "5000");
+        //add information related to issuing plugin
+        n0Params.put("dstRegion", plugin.getRegion());
+        n0Params.put("dstAgent", plugin.getAgent());
+        n0Params.put("dstPlugin", plugin.getPluginID());
+
+//APP CONFIG
+        /*
+        try {
+            String command = "60 10  4  11  12  20  21  23  16";
+            mApp app = new mApp("my test");
+            //mNode(String type, String name, String commands)
+            mNode node = new mNode("Netflow-DPDK-NORSSuml/Netflow-DPDK-NORSS/run_exe.sh", "UK Netflow", command);
+            node.qname = "exchange-name-0";
+            node.qhost = "128.163.217.97";
+            node.qport = "5821";
+            node.qlogin = "sr";
+            node.qpassword = "u$sr01";
+            app.nodes.add(node);
+
+            logger.info(gson.toJson(app));
+        } catch(Exception ex) {
+            logger.error("CADL create error: " + ex.getMessage());
+            StringWriter sw = new StringWriter();
+            ex.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+            logger.error(exceptionAsString);
+        }
+*/
+        List<gNode> gNodes = new ArrayList<>();
+        gNodes.add(new gNode("dummy", "uk", "0", n0Params));
+        gEdge e0 = new gEdge("0","1000000","1000000");
+
+        List<gEdge> gEdges = new ArrayList<>();
+        gEdges.add(e0);
+
+        gPayload gpay = new gPayload(gNodes,gEdges);
+        gpay.pipeline_id = "0";
+        gpay.pipeline_name = "demo_pipeline";
+        String json = gson.toJson(gpay);
+
+
+        return json;
 
     }
 
@@ -793,163 +1189,6 @@ public class APIController {
 
     }
 
-    @GET
-    @Path("list")
-    @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public Response list() {
-        logger.trace("Call to list()");
-        try {
-            StringBuilder sb = new StringBuilder();
-            sb.append("[");
-            for (QueueListener listener : listeners.values()) {
-                sb.append(listener.getListing());
-                sb.append(",");
-            }
-            if (listeners.size() > 0) {
-                sb.deleteCharAt(sb.lastIndexOf(","));
-            }
-            sb.append("]");
-            return Response.ok(sb.toString()).header("Access-Control-Allow-Origin", "*").build();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return Response.status(500).entity("An exception has occured!")
-                .header("Access-Control-Allow-Origin", "*").build();
-    }
-
-    @GET
-    @Path("/list/kanon")
-    @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public Response kAnonList() {
-        logger.trace("Call to kAnonList()");
-        try {
-            StringBuilder sb = new StringBuilder();
-            sb.append("[");
-            for (KanonWatcher watcher : watchers.values()) {
-                sb.append(watcher.getListing());
-                sb.append(",");
-            }
-            if (watchers.size() > 0)
-                sb.deleteCharAt(sb.lastIndexOf(","));
-            sb.append("]");
-            return Response.ok(sb.toString()).header("Access-Control-Allow-Origin", "*").build();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return Response.status(500).entity("An exception has occured!")
-                .header("Access-Control-Allow-Origin", "*").build();
-    }
-
-    @GET
-    @Path("status/{amqp_exchange}")
-    @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public Response status(@PathParam("amqp_exchange") String amqp_exchange) {
-        logger.trace("Call to start()");
-        logger.debug("amqp_exchange: {}", amqp_exchange);
-        try {
-
-            String pipeline_id = activeApplications.get(amqp_exchange);
-            //applicaiton is readed enable it
-            String status_code = "-1";
-            if(statusApplication(pipeline_id)) {
-                status_code = "10";
-            } else {
-                status_code = "9";
-            }
-
-            return Response.ok(status_code).header("Access-Control-Allow-Origin", "*").build();
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return Response.status(500).entity("No such exchange found!")
-                .header("Access-Control-Allow-Origin", "*").build();
-    }
-
-    @GET
-    @Path("start/{amqp_exchange}")
-    @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public Response start(@PathParam("amqp_exchange") String amqp_exchange) {
-        logger.trace("Call to start()");
-        logger.debug("amqp_exchange: {}", amqp_exchange);
-        try {
-
-            QueueListener listener = listeners.get(amqp_exchange);
-            if (listener != null) {
-                //clear results on start in case of restart
-                if(!listener.results.isEmpty()) {
-                    listener.clearResults();
-                }
-            }
-
-            String pipeline_id = activeApplications.get(amqp_exchange);
-            //applicaiton is readed enable it
-            String status_code = "-1";
-            if(enableApplication(pipeline_id)) {
-                status_code = "10";
-            } else {
-                status_code = "9";
-            }
-
-            return Response.ok(status_code).header("Access-Control-Allow-Origin", "*").build();
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return Response.status(500).entity("No such exchange found!")
-                .header("Access-Control-Allow-Origin", "*").build();
-    }
-
-    @GET
-    @Path("stop/{amqp_exchange}")
-    @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public Response stop(@PathParam("amqp_exchange") String amqp_exchange) {
-        logger.trace("Call to start()");
-        logger.debug("amqp_exchange: {}", amqp_exchange);
-        try {
-
-            ////end_process
-            String pipeline_id = activeApplications.get(amqp_exchange);
-            //applicaiton is readed enable it
-            String status_code = "-1";
-            if(disableApplication(pipeline_id)) {
-                status_code = "10";
-            } else {
-                status_code = "9";
-            }
-
-            return Response.ok(status_code).header("Access-Control-Allow-Origin", "*").build();
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return Response.status(500).entity("No such exchange found!")
-                .header("Access-Control-Allow-Origin", "*").build();
-    }
-
-    @GET
-    @Path("results/{amqp_exchange}")
-    @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public Response results(@PathParam("amqp_exchange") String amqp_exchange) {
-        logger.trace("Call to results()");
-        logger.debug("amqp_exchange: {}", amqp_exchange);
-        try {
-            QueueListener listener = listeners.get(amqp_exchange);
-            if (listener != null) {
-                return Response.ok(listener.Results()).header("Access-Control-Allow-Origin", "*").build();
-            } else {
-                return Response.ok(listeners.keySet().toString()).header("Access-Control-Allow-Origin", "*").build();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return Response.status(500).entity("No such exchange found!")
-                .header("Access-Control-Allow-Origin", "*").build();
-    }
-
     private boolean removeApplication(String pipeline_id) {
         boolean isRemoved = false;
         try {
@@ -1013,435 +1252,4 @@ public class APIController {
         return pipeline_id;
     }
 
-
-    @GET
-    @Path("close/{amqp_exchange}")
-    @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
-    public Response closeListener(@PathParam("amqp_exchange") String amqp_exchange) {
-        logger.trace("Call to closeListener()");
-        logger.debug("amqp_exchange: {}", amqp_exchange);
-        QueueListener listener;
-        if ((listener = listeners.get(amqp_exchange)) != null) {
-            listener.kill();
-            listeners.remove(amqp_exchange);
-            //todo remove plugins
-            //remove plugins
-            String pipeline_id = activeApplications.get(amqp_exchange);
-            if(!removeApplication(pipeline_id)) {
-                logger.error("Could not remove application: " + pipeline_id + " exchange_id:" + amqp_exchange);
-            }
-            return Response.ok("QueryListener Disposed").header("Access-Control-Allow-Origin", "*").build();
-        }
-        KanonWatcher watcher;
-        if ((watcher = watchers.get(amqp_exchange)) != null) {
-            watcher.kill();
-            watchers.remove(amqp_exchange);
-            return Response.ok("KanonWatcher Disposed").header("Access-Control-Allow-Origin", "*").build();
-        }
-        return Response.status(500).entity("No such listener or watcher found or has already been closed!")
-                .header("Access-Control-Allow-Origin", "*").build();
-    }
-
-    public static class QueueListener implements Runnable {
-        private static final long LISTENER_TIMEOUT = 1000 * 60 * 5;
-        private static final long RESULTS_TIMEOUT = 1000 * 60 * 60;
-        private String amqp_server;
-        private String amqp_login;
-        private String amqp_password;
-        private String amqp_exchange;
-        private String pluginID;
-        private String program;
-        private Date issued;
-        private Date start;
-        private Date end;
-        private String programArgs;
-        private Timer closer;
-        private Timer disposer;
-
-        private boolean processing = true;
-        private boolean running = true;
-        private boolean alive = true;
-
-        private final Object logLock = new Object();
-        private HashMap<Long, String> logs = new HashMap<>();
-        private final Object resultsLock = new Object();
-        private HashSet<String> results = new HashSet<>();
-
-        QueueListener(String amqp_server, String amqp_login, String amqp_password, String amqp_queue_name,
-                      String program, Date start, Date end, String programArgs) {
-            this.amqp_server = amqp_server;
-            this.amqp_login = amqp_login;
-            this.amqp_password = amqp_password;
-            this.amqp_exchange = amqp_queue_name;
-            this.program = program;
-            this.issued = new Date();
-            this.start = start;
-            this.end = end;
-            this.programArgs = programArgs;
-            this.closer = null;
-            this.disposer = null;
-        }
-
-        class CloseTask extends TimerTask {
-            @Override
-            public void run() {
-                close();
-            }
-        }
-
-        class DisposeTask extends TimerTask {
-            @Override
-            public void run() {
-                dispose();
-            }
-        }
-
-        public void clearResults() {
-            this.results.clear();
-        }
-
-        @Override
-        public void run() {
-            ConnectionFactory factory = new ConnectionFactory();
-            factory.setHost(this.amqp_server);
-            factory.setUsername(this.amqp_login);
-            factory.setPassword(this.amqp_password);
-            factory.setConnectionTimeout(10000);
-            Connection connection;
-            try {
-                try {
-                    connection = factory.newConnection();
-                } catch (IOException e) {
-                    logger.error("Failed to create AMQP connection... {}", e.getMessage());
-                    return;
-                }
-                Channel rx_channel;
-                try {
-                    rx_channel = connection.createChannel();
-                } catch (IOException e) {
-                    logger.error("Failed to create receiving channel... {}", e.getMessage());
-                    return;
-                }
-                try {
-                    //rx_channel.exchangeDeclare(this.amqp_exchange, "direct");
-                    //rx_channel.exchangeDeclare(this.amqp_exchange, "fanout", false, false, true, null);
-                    rx_channel.exchangeDeclare(this.amqp_exchange, "fanout");
-
-                    //exchangeDeclare(java.lang.String exchange, java.lang.String type, boolean passive, boolean durable, boolean autoDelete, java.util.Map<java.lang.String,java.lang.Object> arguments)
-
-
-
-                } catch (IOException e) {
-                    logger.error("Failed to declare exchange... {}", e.getMessage());
-                    return;
-                }
-                String queueName;
-                try {
-                    queueName = rx_channel.queueDeclare().getQueue();
-                } catch (IOException e) {
-                    logger.error("Failed to declare queue in exchange... {}", e.getMessage());
-                    return;
-                }
-                try {
-                    rx_channel.queueBind(queueName, this.amqp_exchange, "");
-                } catch (IOException e) {
-                    logger.error("Failed to bind to queue... {}", e.getMessage());
-                    return;
-                }
-                QueueingConsumer consumer;
-                try {
-                    consumer = new QueueingConsumer(rx_channel);
-                    rx_channel.basicConsume(queueName, true, consumer);
-                } catch (IOException e) {
-                    logger.error("Failed to attach consumer to channel... {}", e.getMessage());
-                    return;
-                }
-
-                while (this.running) {
-                    try {
-                        QueueingConsumer.Delivery delivery = consumer.nextDelivery(500);
-                        if (delivery != null) {
-                            synchronized (this.resultsLock) {
-                                this.results.add(new String(delivery.getBody()).trim());
-                            }
-                        }
-                    } catch (InterruptedException e) {
-                        logger.error("Queue consumer tapped out early... {}", e.getMessage());
-                    }
-                }
-                try {
-                    rx_channel.queueDelete(queueName);
-                } catch (IOException e) {
-                    logger.error("Failed to close queue... {}", e.getMessage());
-                    return;
-                }
-                try {
-                    rx_channel.exchangeDelete(this.amqp_exchange);
-                } catch (IOException e) {
-                    logger.error("Failed to close exchange... {}", e.getMessage());
-                    return;
-                }
-                try {
-                    rx_channel.close();
-                } catch (IOException e) {
-                    logger.error("Failed to close channel... {}", e.getMessage());
-                    return;
-                }
-                try {
-                    connection.close();
-                } catch (IOException e) {
-                    logger.error("Failed to close connection... {}", e.getMessage());
-                }
-                try {
-                    while (this.alive) {
-                        Thread.sleep(1000);
-                    }
-                    listeners.remove(this.amqp_exchange);
-                } catch (InterruptedException e) {
-                    // This can happen and is fine
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        public void log(String ts, String log) {
-            synchronized (logLock) {
-                this.logs.put(Long.parseLong(ts), log);
-            }
-        }
-
-        private String getState() {
-            if (this.processing)
-                return "Executing";
-            else if (this.running)
-                return "Listening";
-            else if (this.alive)
-                return "Holding Data";
-            else
-                return "Shutting Down";
-        }
-
-        String getListing() {
-            return "{\"exchange\":\"" + this.amqp_exchange +
-                    "\",\"state\":\"" + this.getState() +
-                    "\",\"issued\":\"" + this.issued +
-                    "\",\"start\":\"" + this.start +
-                    "\",\"end\":\"" + this.end +
-                    "\",\"program\":\"" + this.program +
-                    "\",\"args\":\"" + this.programArgs + "\"}";
-        }
-
-        String Results() {
-            if (this.disposer != null) {
-                this.disposer.cancel();
-                this.disposer = new Timer();
-                this.disposer.schedule(new DisposeTask(), RESULTS_TIMEOUT);
-            }
-            HashSet<String> resultMessages;
-            synchronized (this.resultsLock) {
-                resultMessages = new HashSet<>(this.results);
-            }
-            List<String> logMessages = new ArrayList<>();
-            synchronized (this.logLock) {
-                List<Long> keys = new ArrayList<>(logs.keySet());
-                Collections.sort(keys);
-                for (Long key : keys) {
-                    logMessages.add(StringEscapeUtils.escapeJavaScript(logs.get(key)));
-                }
-            }
-            StringBuilder ret = new StringBuilder();
-            ret.append("{");
-            ret.append("\"exchange\":\"");
-            ret.append(this.amqp_exchange);
-            ret.append("\",\"state\":\"");
-            ret.append(this.getState());
-            ret.append("\",\"issued\":\"");
-            ret.append(this.issued);
-            ret.append("\",\"start\":\"");
-            ret.append(this.start);
-            ret.append("\",\"end\":\"");
-            ret.append(this.end);
-            ret.append("\",\"program\":\"");
-            ret.append(this.program);
-            ret.append("\",\"args\":\"");
-            ret.append(this.programArgs);
-            ret.append("\",\"logs\":[");
-            for (String logMessage : logMessages) {
-                ret.append("\"");
-                ret.append(logMessage);
-                ret.append("\",");
-            }
-            if (logMessages.size() > 0) {
-                ret.deleteCharAt(ret.lastIndexOf(","));
-            }
-            ret.append("],\"results\":[");
-            for (String resultMessage : resultMessages) {
-                if (resultMessage.startsWith("{")) {
-                    ret.append(resultMessage);
-                    ret.append(",");
-                } else {
-                    ret.append("\"");
-                    ret.append(resultMessage);
-                    ret.append("\",");
-                }
-            }
-            if (resultMessages.size() > 0) {
-                ret.deleteCharAt(ret.lastIndexOf(","));
-            }
-            ret.append("]");
-            ret.append("}");
-            return ret.toString();
-        }
-
-        void setPluginID(String pluginID) {
-            this.pluginID = pluginID;
-        }
-
-        public void done() {
-            this.processing = false;
-            this.closer = new Timer();
-            this.closer.schedule(new CloseTask(), LISTENER_TIMEOUT);
-            this.disposer = new Timer();
-            this.disposer.schedule(new DisposeTask(), RESULTS_TIMEOUT);
-        }
-
-        public void close() {
-            logger.info("Closing Exchange: " + this.amqp_exchange);
-            this.running = false;
-        }
-
-        void dispose() {
-            logger.info("Disposing of Data: " + this.amqp_exchange);
-            this.alive = false;
-        }
-
-        void kill() {
-            logger.info("Destroying QueryListener for: " + this.amqp_exchange);
-            if (this.closer != null) {
-                this.closer.cancel();
-            }
-            if (this.disposer != null) {
-                this.disposer.cancel();
-            }
-            if (this.processing) {
-                Map<String, String> params = new HashMap<>();
-                params.put("src_region", plugin.getRegion());
-                params.put("src_agent", plugin.getAgent());
-                params.put("src_plugin", plugin.getPluginID());
-                params.put("dst_region", plugin.getRegion());
-                params.put("dst_agent", plugin.getAgent());
-                params.put("action", "disable");
-                params.put("plugin", this.pluginID);
-                plugin.sendMsgEvent(new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(),
-                        plugin.getPluginID(), params));
-            }
-            this.running = false;
-            this.alive = false;
-        }
-    }
-
-    private static class KanonWatcher implements Runnable {
-        private String id;
-        private String pluginID;
-        private String command;
-        private Date issued;
-
-        private boolean alive = true;
-
-        private final Object logLock = new Object();
-        private HashSet<String> logs = new HashSet<>();
-
-        KanonWatcher(String id, String command) {
-            this.id = id;
-            this.command = command;
-            this.issued = new Date();
-        }
-
-        @Override
-        public void run() {
-            try {
-                try {
-                    while (alive) {
-                        Thread.sleep(1000);
-                    }
-                    watchers.remove(id);
-                } catch (InterruptedException e) {
-                    // This can happen and is fine
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        public void log(String log) {
-            synchronized (logLock) {
-                logs.add(log);
-            }
-        }
-
-        String Results() {
-            HashSet<String> logMessages;
-            synchronized (this.logLock) {
-                logMessages = new HashSet<>(this.logs);
-            }
-            StringBuilder ret = new StringBuilder();
-            ret.append("{");
-            ret.append("\"state\":\"");
-            ret.append(this.getState());
-            ret.append("\",\"issued\":\"");
-            ret.append(this.issued);
-            ret.append("\",\"logs\":[");
-            for (String logMessage : logMessages) {
-                ret.append("\"");
-                ret.append(logMessage);
-                ret.append("\",");
-            }
-            if (logMessages.size() > 0) {
-                ret.deleteCharAt(ret.lastIndexOf(","));
-            }
-            ret.append("]");
-            ret.append("}");
-            return ret.toString();
-        }
-
-        private String getState() {
-            if (alive)
-                return "Running";
-            else
-                return "Shutting Down";
-        }
-
-        String getListing() {
-            return "{\"id\":\"" + id +
-                    "\",\"state\":\"" + getState() +
-                    "\",\"issued\":\"" + issued +
-                    "\",\"command\":\"" + command + "\"}";
-        }
-
-        void setPluginID(String pluginID) {
-            this.pluginID = pluginID;
-        }
-
-        void dispose() {
-            this.alive = false;
-        }
-
-        void kill() {
-            logger.info("Destroying KanonWatcher [{}]", id);
-            if (alive) {
-                Map<String, String> params = new HashMap<>();
-                params.put("src_region", plugin.getRegion());
-                params.put("src_agent", plugin.getAgent());
-                params.put("src_plugin", plugin.getPluginID());
-                params.put("dst_region", plugin.getRegion());
-                params.put("dst_agent", plugin.getAgent());
-                params.put("action", "disable");
-                params.put("plugin", this.pluginID);
-                plugin.sendMsgEvent(new MsgEvent(MsgEvent.Type.CONFIG, plugin.getRegion(), plugin.getAgent(),
-                        plugin.getPluginID(), params));
-            }
-            alive = false;
-        }
-    }
 }
