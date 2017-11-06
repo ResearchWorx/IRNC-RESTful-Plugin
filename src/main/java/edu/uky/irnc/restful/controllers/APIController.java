@@ -33,7 +33,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Path("API")
 public class APIController {
 
-    public static ConcurrentHashMap<String, String> activeApplications = new ConcurrentHashMap<>();
     public static ConcurrentHashMap<String, QueueListener> listeners = new ConcurrentHashMap<>();
     private static Plugin plugin;
     private static CLogger logger;
@@ -110,21 +109,14 @@ public class APIController {
 
             String cadlJSON = mAppToCADL(app);
 
-            //logger.info("CADLJSON: " + cadlJSON);
-
             String pipeline_id = addApplication(cadlJSON);
 
             try {
 
                 if (pipeline_id != null) {
 
+                    listeners.get(qname).getApp().id = pipeline_id;
 
-                    //todo make this much cleaner
-                    //adding application and exchange reference
-                    activeApplications.put(qname,pipeline_id);
-                    //Thread.sleep(3000);
-
-                    //int status = getPipelineStatus(pipeline_id);
                     int status = -2;
 
                     while(!(status == 10) && (status != -1)) {
@@ -134,7 +126,6 @@ public class APIController {
                         }
                         status = getPipelineStatus(pipeline_id);
                         logger.info("pipeline_id: " + pipeline_id + " status:" + status);
-
                     }
 
                 } else {
@@ -200,7 +191,7 @@ public class APIController {
         logger.debug("amqp_exchange: {}", amqp_exchange);
         try {
 
-            String pipeline_id = activeApplications.get(amqp_exchange);
+            String pipeline_id = listeners.get(amqp_exchange).getApp().id;
             //applicaiton is readed enable it
             String status_code = "-1";
             if(statusApplication(pipeline_id)) {
@@ -208,7 +199,6 @@ public class APIController {
             } else {
                 status_code = "9";
             }
-
             return Response.ok(status_code).header("Access-Control-Allow-Origin", "*").build();
 
 
@@ -235,7 +225,8 @@ public class APIController {
                 }
             }
 
-            String pipeline_id = activeApplications.get(amqp_exchange);
+            String pipeline_id = listeners.get(amqp_exchange).getApp().id;
+
             //applicaiton is readed enable it
             String status_code = "-1";
             if(enableApplication(pipeline_id)) {
@@ -263,7 +254,7 @@ public class APIController {
         try {
 
             ////end_process
-            String pipeline_id = activeApplications.get(amqp_exchange);
+            String pipeline_id = listeners.get(amqp_exchange).getApp().id;
             //applicaiton is readed enable it
             String status_code = "-1";
             if(disableApplication(pipeline_id)) {
@@ -314,7 +305,7 @@ public class APIController {
             listeners.remove(amqp_exchange);
             //todo remove plugins
             //remove plugins
-            String pipeline_id = activeApplications.get(amqp_exchange);
+            String pipeline_id = listeners.get(amqp_exchange).getApp().id;
             if(!removeApplication(pipeline_id)) {
                 logger.error("Could not remove application: " + pipeline_id + " exchange_id:" + amqp_exchange);
             }
@@ -338,6 +329,7 @@ public class APIController {
         private Date issued;
         private Timer closer;
         private Timer disposer;
+        private String pipeline_id;
 
         private boolean processing = true;
         private boolean running = true;
@@ -378,6 +370,20 @@ public class APIController {
 
         public void clearResults() {
             this.results = null;
+        }
+
+        /*
+        public void setPipelineId(String pipeline_id) {
+            this.pipeline_id = pipeline_id;
+        }
+
+        public String getPipelineId() {
+            return pipeline_id;
+        }
+        */
+
+        public mApp getApp() {
+            return this.app;
         }
 
         @Override
@@ -857,7 +863,6 @@ public class APIController {
                         isEnabled = true;
                     }
                 }
-
 
             }
 
