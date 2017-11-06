@@ -595,7 +595,6 @@ public class APIController {
         return isEnabled;
     }
 
-
     private boolean disableApplication(String pipeline_id) {
         boolean isDisabled = false;
         try {
@@ -876,6 +875,14 @@ public class APIController {
         logger.debug("amqp_exchange: {}", amqp_exchange);
         try {
 
+            QueueListener listener = listeners.get(amqp_exchange);
+            if (listener != null) {
+                //clear results on start in case of restart
+                if(!listener.results.isEmpty()) {
+                    listener.clearResults();
+                }
+            }
+
             String pipeline_id = activeApplications.get(amqp_exchange);
             //applicaiton is readed enable it
             String status_code = "-1";
@@ -1087,6 +1094,10 @@ public class APIController {
             public void run() {
                 dispose();
             }
+        }
+
+        public void clearResults() {
+            this.results.clear();
         }
 
         @Override
