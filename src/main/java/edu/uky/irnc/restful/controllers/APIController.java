@@ -124,16 +124,17 @@ public class APIController {
                     activeApplications.put(qname,pipeline_id);
                     //Thread.sleep(3000);
 
-                    int status = getPipelineStatus(pipeline_id);
-                    //int status = -2;
+                    //int status = getPipelineStatus(pipeline_id);
+                    int status = -2;
 
                     while(!(status == 10) && (status != -1)) {
+                        Thread.sleep(1000);
                         if(status == -1) {
                             logger.error("Problem with Pipeline Check ! Status -1");
                         }
                         status = getPipelineStatus(pipeline_id);
                         logger.info("pipeline_id: " + pipeline_id + " status:" + status);
-                        Thread.sleep(500);
+
                     }
 
                 } else {
