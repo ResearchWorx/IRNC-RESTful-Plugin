@@ -852,7 +852,7 @@ public class APIController {
             String pipeline_id = activeApplications.get(amqp_exchange);
             //applicaiton is readed enable it
             String status_code = "-1";
-            if(enableApplication(pipeline_id)) {
+            if(statusApplication(pipeline_id)) {
                 status_code = "10";
             } else {
                 status_code = "9";
