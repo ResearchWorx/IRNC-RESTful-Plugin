@@ -345,7 +345,8 @@ public class APIController {
         private final Object logLock = new Object();
         private HashMap<Long, String> logs = new HashMap<>();
         private final Object resultsLock = new Object();
-        private HashSet<String> results = new HashSet<>();
+        //private HashSet<String> results = new HashSet<>();
+        private String results = new String();
 
         QueueListener(String amqp_server, String amqp_login, String amqp_password, String amqp_queue_name,
                       String program, String jsonString, mApp app) {
@@ -375,7 +376,7 @@ public class APIController {
         }
 
         public void clearResults() {
-            this.results.clear();
+            this.results = null;
         }
 
         @Override
@@ -440,9 +441,11 @@ public class APIController {
                         QueueingConsumer.Delivery delivery = consumer.nextDelivery(500);
                         if (delivery != null) {
                             synchronized (this.resultsLock) {
-                                String str = new String(delivery.getBody()).trim();
-                                logger.error("*" + str + "*");
-                                this.results.add(str);
+
+                                results = new String(delivery.getBody()).trim();
+                                //String str = new String(delivery.getBody()).trim();
+                                //logger.error("*" + str + "*");
+                                //this.results.add(str);
                                 //this.results.add(new String(delivery.getBody()).trim());
                             }
                         }
@@ -548,17 +551,8 @@ public class APIController {
             if (logMessages.size() > 0) {
                 ret.deleteCharAt(ret.lastIndexOf(","));
             }
-            ret.append("],\"results\":");
-            for (String resultMessage : resultMessages) {
-                if (resultMessage.startsWith("{")) {
-                    ret.append(resultMessage);
-                    ret.append(",");
-                } else {
-                    ret.append("\"");
-                    ret.append(resultMessage);
-                    ret.append("\",");
-                }
-            }
+            ret.append("],\"results\":" + results);
+
             /*
             ret.append("],\"results\":[");
             for (String resultMessage : resultMessages) {
