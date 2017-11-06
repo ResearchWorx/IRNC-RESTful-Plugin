@@ -124,8 +124,8 @@ public class APIController {
                     activeApplications.put(qname,pipeline_id);
                     //Thread.sleep(3000);
 
-                    //int status = getPipelineStatus(pipeline_id);
-                    int status = -2;
+                    int status = getPipelineStatus(pipeline_id);
+                    //int status = -2;
 
                     while(!(status == 10) && (status != -1)) {
                         if(status == -1) {
