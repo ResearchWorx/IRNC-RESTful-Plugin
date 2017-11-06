@@ -46,7 +46,7 @@ public class APIController {
     public static void setPlugin(Plugin mainPlugin) {
         plugin = mainPlugin;
         logger = new CLogger(APIController.class, plugin.getMsgOutQueue(), plugin.getRegion(), plugin.getAgent(),
-                plugin.getPluginID(), CLogger.Level.Trace);
+                plugin.getPluginID(), CLogger.Level.Info);
         amqp_server = plugin.getConfig().getStringParam("amqp_server", "128.163.217.97");
         amqp_port = plugin.getConfig().getStringParam("amqp_port", "5672");
         amqp_login = plugin.getConfig().getStringParam("amqp_login", "tester");
