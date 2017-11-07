@@ -297,21 +297,30 @@ public class APIController {
     @Path("close/{amqp_exchange}")
     @Produces(MediaType.TEXT_PLAIN + ";charset=utf-8")
     public Response closeListener(@PathParam("amqp_exchange") String amqp_exchange) {
-        logger.trace("Call to closeListener()");
-        logger.debug("amqp_exchange: {}", amqp_exchange);
-        QueueListener listener;
-        if ((listener = listeners.get(amqp_exchange)) != null) {
-            listener.kill();
-            listeners.remove(amqp_exchange);
-            //todo remove plugins
-            //remove plugins
-            String pipeline_id = listeners.get(amqp_exchange).getApp().id;
-            if(!removeApplication(pipeline_id)) {
-                logger.error("Could not remove application: " + pipeline_id + " exchange_id:" + amqp_exchange);
+        try {
+            logger.trace("Call to closeListener()");
+            logger.debug("amqp_exchange: {}", amqp_exchange);
+            QueueListener listener;
+            if ((listener = listeners.get(amqp_exchange)) != null) {
+                listener.kill();
+                listeners.remove(amqp_exchange);
+                //todo remove plugins
+                //remove plugins
+                String pipeline_id = listeners.get(amqp_exchange).getApp().id;
+                if (!removeApplication(pipeline_id)) {
+                    logger.error("Could not remove application: " + pipeline_id + " exchange_id:" + amqp_exchange);
+                }
+                return Response.ok("QueryListener Disposed").header("Access-Control-Allow-Origin", "*").build();
             }
-            return Response.ok("QueryListener Disposed").header("Access-Control-Allow-Origin", "*").build();
-        }
+        } catch(Exception ex) {
 
+            StringWriter errors = new StringWriter();
+            ex.printStackTrace(new PrintWriter(errors));
+            logger.error(" CLOSE EXCHANGE ERROR " + errors.toString());
+
+            return Response.status(500).entity("Error on Close!")
+                    .header("Access-Control-Allow-Origin", "*").build();
+        }
         return Response.status(500).entity("No such listener or watcher found or has already been closed!")
                 .header("Access-Control-Allow-Origin", "*").build();
     }
