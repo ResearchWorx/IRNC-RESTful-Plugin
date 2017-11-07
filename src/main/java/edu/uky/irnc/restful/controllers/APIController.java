@@ -651,7 +651,7 @@ public class APIController {
                 logger.info("Node name: " + node.name + " type:" + node.type + " command:" + node.commands);
 
                 String queueAppend = node.qhost + " " + node.qport + " " + node.qlogin + " " + node.qpassword + " " + node.qname;
-                String startingDir = "/home/yan/AMIS/amis/uml/";
+                String startingDir = "/home/acanets/AMIS/amis/uml/";
                 String type = node.type;
                 if(type.startsWith("/")) {
                     type = type.replaceFirst("/","");
