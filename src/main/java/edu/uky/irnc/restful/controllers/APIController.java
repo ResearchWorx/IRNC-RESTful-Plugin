@@ -300,13 +300,14 @@ public class APIController {
         try {
             logger.trace("Call to closeListener()");
             logger.debug("amqp_exchange: {}", amqp_exchange);
+            String pipeline_id = listeners.get(amqp_exchange).getApp().id;
+
             QueueListener listener;
             if ((listener = listeners.get(amqp_exchange)) != null) {
                 listener.kill();
                 listeners.remove(amqp_exchange);
                 //todo remove plugins
                 //remove plugins
-                String pipeline_id = listeners.get(amqp_exchange).getApp().id;
                 if (!removeApplication(pipeline_id)) {
                     logger.error("Could not remove application: " + pipeline_id + " exchange_id:" + amqp_exchange);
                 }
