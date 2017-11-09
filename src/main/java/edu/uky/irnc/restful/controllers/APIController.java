@@ -282,6 +282,7 @@ public class APIController {
         try {
             QueueListener listener = listeners.get(amqp_exchange);
             if (listener != null) {
+
                 return Response.ok(listener.Results()).header("Access-Control-Allow-Origin", "*").build();
             } else {
                 return Response.ok(listeners.keySet().toString()).header("Access-Control-Allow-Origin", "*").build();
@@ -547,6 +548,9 @@ public class APIController {
             String resultMessage = null;
             synchronized (this.resultsLock) {
                 resultMessage = this.results;
+                if(resultMessage.length() == 0) {
+                    resultMessage = "[]";
+                }
             }
 
             List<String> logMessages = new ArrayList<>();
@@ -576,6 +580,7 @@ public class APIController {
             if (logMessages.size() > 0) {
                 ret.deleteCharAt(ret.lastIndexOf(","));
             }
+
             ret.append("],\"results\":" + resultMessage);
 
             /*
