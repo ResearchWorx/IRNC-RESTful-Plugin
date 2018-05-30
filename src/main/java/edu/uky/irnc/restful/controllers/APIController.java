@@ -675,7 +675,7 @@ public class APIController {
 
                 Map<String, String> n0Params = new HashMap<>();
                 n0Params.put("pluginname", "executor-plugin");
-                n0Params.put("jarfile", "executor/target/executor-plugin-0.1.0.jar");
+                n0Params.put("jarfile", "executor-plugin-0.1.0.jar");
 
                 n0Params.put("runCommand", runcommand);
                 n0Params.put("location", node.location);
@@ -715,7 +715,7 @@ public class APIController {
 
         Map<String,String> n0Params = new HashMap<>();
         n0Params.put("pluginname","executor-plugin");
-        n0Params.put("jarfile","executor/target/executor-plugin-0.1.0.jar");
+        n0Params.put("jarfile","executor-plugin-0.1.0.jar");
         n0Params.put("runCommand", runcommand);
         n0Params.put("location",targetLocation);
         n0Params.put("watchdogtimer", "5000");
@@ -781,7 +781,14 @@ public class APIController {
                 getAgent.setParam("src_agent", plugin.getAgent());
                 getAgent.setParam("src_plugin", plugin.getPluginID());
                 getAgent.setParam("dst_region", plugin.getRegion());
-                getAgent.setParam("globalcmd", Boolean.TRUE.toString());
+                getAgent.setParam("dst_agent", plugin.getRegion());
+                getAgent.setParam("dst_plugin", "plugin/0");
+
+                //getAgent.setParam("globalcmd", Boolean.TRUE.toString());
+                getAgent.setParam("is_global", Boolean.TRUE.toString());
+                getAgent.setParam("is_regional", Boolean.TRUE.toString());
+
+
                 getAgent.setParam("action", "getisassignmentinfo");
                 getAgent.setParam("action_inodeid", iNodeId);
                 getAgent.setParam("action_resourceid", ResourceId);
@@ -843,7 +850,14 @@ public class APIController {
                 getAgent.setParam("src_agent", plugin.getAgent());
                 getAgent.setParam("src_plugin", plugin.getPluginID());
                 getAgent.setParam("dst_region", plugin.getRegion());
-                getAgent.setParam("globalcmd", Boolean.TRUE.toString());
+                getAgent.setParam("dst_agent", plugin.getRegion());
+                getAgent.setParam("dst_plugin", "plugin/0");
+
+                //getAgent.setParam("globalcmd", Boolean.TRUE.toString());
+                getAgent.setParam("is_global", Boolean.TRUE.toString());
+                getAgent.setParam("is_regional", Boolean.TRUE.toString());
+
+
                 getAgent.setParam("action", "getisassignmentinfo");
                 getAgent.setParam("action_inodeid", iNodeId);
                 getAgent.setParam("action_resourceid", ResourceId);
@@ -904,7 +918,15 @@ public class APIController {
                 getAgent.setParam("src_agent", plugin.getAgent());
                 getAgent.setParam("src_plugin", plugin.getPluginID());
                 getAgent.setParam("dst_region", plugin.getRegion());
-                getAgent.setParam("globalcmd", Boolean.TRUE.toString());
+                getAgent.setParam("dst_agent", plugin.getRegion());
+                getAgent.setParam("dst_plugin", "plugin/0");
+
+
+                //getAgent.setParam("globalcmd", Boolean.TRUE.toString());
+                getAgent.setParam("is_global", Boolean.TRUE.toString());
+                getAgent.setParam("is_regional", Boolean.TRUE.toString());
+
+
                 getAgent.setParam("action", "getisassignmentinfo");
                 getAgent.setParam("action_inodeid", iNodeId);
                 getAgent.setParam("action_resourceid", ResourceId);
@@ -958,8 +980,15 @@ public class APIController {
             getpipeline.setParam("src_agent", plugin.getAgent());
             getpipeline.setParam("src_plugin", plugin.getPluginID());
             getpipeline.setParam("dst_region", plugin.getRegion());
+            getpipeline.setParam("dst_agent", plugin.getRegion());
+            getpipeline.setParam("dst_plugin", "plugin/0");
 
-            getpipeline.setParam("globalcmd", Boolean.TRUE.toString());
+
+            //getpipeline.setParam("globalcmd", Boolean.TRUE.toString());
+            getpipeline.setParam("is_global", Boolean.TRUE.toString());
+            getpipeline.setParam("is_regional", Boolean.TRUE.toString());
+
+
             getpipeline.setParam("action", "getgpipeline");
             getpipeline.setParam("action_pipelineid",pipeline_id);
 
@@ -1042,10 +1071,18 @@ public class APIController {
             pipelineCheck.setParam("src_agent", plugin.getAgent());
             pipelineCheck.setParam("src_plugin", plugin.getPluginID());
             pipelineCheck.setParam("dst_region", plugin.getRegion());
+            pipelineCheck.setParam("dst_region", plugin.getRegion());
+            pipelineCheck.setParam("dst_agent", plugin.getRegion());
+            pipelineCheck.setParam("dst_plugin", "plugin/0");
+
             //enable.setParam("dst_agent", plugin.getAgent());
             //enable.setParam("dst_agent", targetLocation);
 
-            pipelineCheck.setParam("globalcmd", Boolean.TRUE.toString());
+            //pipelineCheck.setParam("globalcmd", Boolean.TRUE.toString());\
+            pipelineCheck.setParam("is_global", Boolean.TRUE.toString());
+            pipelineCheck.setParam("is_regional", Boolean.TRUE.toString());
+
+
             pipelineCheck.setParam("action", "getgpipelinestatus");
             pipelineCheck.setParam("action_pipeline",pipeline_id);
 
@@ -1094,9 +1131,17 @@ public class APIController {
             remove.setParam("src_region", plugin.getRegion());
             remove.setParam("src_agent", plugin.getAgent());
             remove.setParam("src_plugin", plugin.getPluginID());
+            //remove.setParam("dst_region", plugin.getRegion());
             remove.setParam("dst_region", plugin.getRegion());
+            remove.setParam("dst_agent", plugin.getRegion());
+            remove.setParam("dst_plugin", "plugin/0");
 
-            remove.setParam("globalcmd", Boolean.TRUE.toString());
+            //remove.setParam("globalcmd", Boolean.TRUE.toString());
+            remove.setParam("is_global", Boolean.TRUE.toString());
+            remove.setParam("is_regional", Boolean.TRUE.toString());
+
+
+
             remove.setParam("action", "gpipelineremove");
             remove.setParam("action_pipelineid", pipeline_id);
 
@@ -1126,8 +1171,14 @@ public class APIController {
             add.setParam("src_agent", plugin.getAgent());
             add.setParam("src_plugin", plugin.getPluginID());
             add.setParam("dst_region", plugin.getRegion());
+            add.setParam("dst_agent", plugin.getRegion());
+            add.setParam("dst_plugin", "plugin/0");
 
-            add.setParam("globalcmd", Boolean.TRUE.toString());
+
+            //add.setParam("globalcmd", Boolean.TRUE.toString());
+            add.setParam("is_global", Boolean.TRUE.toString());
+            add.setParam("is_regional", Boolean.TRUE.toString());
+
             add.setParam("action", "gpipelinesubmit");
             add.setParam("action_tenantid","0");
             add.setParam("gpipeline_compressed",String.valueOf(Boolean.TRUE));
