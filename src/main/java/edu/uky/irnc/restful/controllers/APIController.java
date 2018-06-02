@@ -781,7 +781,7 @@ public class APIController {
                 getAgent.setParam("src_agent", plugin.getAgent());
                 getAgent.setParam("src_plugin", plugin.getPluginID());
                 getAgent.setParam("dst_region", plugin.getRegion());
-                getAgent.setParam("dst_agent", plugin.getRegion());
+                getAgent.setParam("dst_agent", plugin.getAgent());
                 getAgent.setParam("dst_plugin", "plugin/0");
 
                 //getAgent.setParam("globalcmd", Boolean.TRUE.toString());
@@ -797,6 +797,8 @@ public class APIController {
 
                 String isassignmentinfo = getAgentResponse.getCompressedParam("isassignmentinfo");
 
+                logger.info("ASSIGNMENT INFO : " + isassignmentinfo);
+
                 Gson gson = new Gson();
                 Type stringStringMap = new TypeToken<Map<String, String>>(){}.getType();
                 Map<String,String> map = gson.fromJson(isassignmentinfo, stringStringMap);
@@ -804,6 +806,8 @@ public class APIController {
                 String region = map.get("region");
                 String agent = map.get("agent");
                 String pluginId = map.get("plugin");
+
+                logger.info("Starting region: " + region + " agent: " + agent + " plugin: " + pluginId);
 
                 MsgEvent runProcess = new MsgEvent(MsgEvent.Type.EXEC, plugin.getRegion(), plugin.getAgent(),
                         plugin.getPluginID(), "Issuing command to start program");
@@ -815,7 +819,9 @@ public class APIController {
                 runProcess.setParam("dst_plugin", pluginId);
                 runProcess.setParam("cmd", "run_process");
 
+                logger.info("SENDING MESSAGE! " + runProcess.getParams().toString());
                 MsgEvent runProcessResponse = plugin.sendRPC(runProcess);
+                logger.info("RETURNED MESSAGE! " + runProcessResponse.getParams().toString());
 
                 if(runProcessResponse.getParam("status") != null) {
                     if(Boolean.parseBoolean(runProcessResponse.getParam("status"))) {
@@ -850,7 +856,7 @@ public class APIController {
                 getAgent.setParam("src_agent", plugin.getAgent());
                 getAgent.setParam("src_plugin", plugin.getPluginID());
                 getAgent.setParam("dst_region", plugin.getRegion());
-                getAgent.setParam("dst_agent", plugin.getRegion());
+                getAgent.setParam("dst_agent", plugin.getAgent());
                 getAgent.setParam("dst_plugin", "plugin/0");
 
                 //getAgent.setParam("globalcmd", Boolean.TRUE.toString());
@@ -918,7 +924,7 @@ public class APIController {
                 getAgent.setParam("src_agent", plugin.getAgent());
                 getAgent.setParam("src_plugin", plugin.getPluginID());
                 getAgent.setParam("dst_region", plugin.getRegion());
-                getAgent.setParam("dst_agent", plugin.getRegion());
+                getAgent.setParam("dst_agent", plugin.getAgent());
                 getAgent.setParam("dst_plugin", "plugin/0");
 
 
@@ -980,7 +986,7 @@ public class APIController {
             getpipeline.setParam("src_agent", plugin.getAgent());
             getpipeline.setParam("src_plugin", plugin.getPluginID());
             getpipeline.setParam("dst_region", plugin.getRegion());
-            getpipeline.setParam("dst_agent", plugin.getRegion());
+            getpipeline.setParam("dst_agent", plugin.getAgent());
             getpipeline.setParam("dst_plugin", "plugin/0");
 
 
@@ -1071,8 +1077,7 @@ public class APIController {
             pipelineCheck.setParam("src_agent", plugin.getAgent());
             pipelineCheck.setParam("src_plugin", plugin.getPluginID());
             pipelineCheck.setParam("dst_region", plugin.getRegion());
-            pipelineCheck.setParam("dst_region", plugin.getRegion());
-            pipelineCheck.setParam("dst_agent", plugin.getRegion());
+            pipelineCheck.setParam("dst_agent", plugin.getAgent());
             pipelineCheck.setParam("dst_plugin", "plugin/0");
 
             //enable.setParam("dst_agent", plugin.getAgent());
@@ -1133,7 +1138,7 @@ public class APIController {
             remove.setParam("src_plugin", plugin.getPluginID());
             //remove.setParam("dst_region", plugin.getRegion());
             remove.setParam("dst_region", plugin.getRegion());
-            remove.setParam("dst_agent", plugin.getRegion());
+            remove.setParam("dst_agent", plugin.getAgent());
             remove.setParam("dst_plugin", "plugin/0");
 
             //remove.setParam("globalcmd", Boolean.TRUE.toString());
@@ -1171,7 +1176,7 @@ public class APIController {
             add.setParam("src_agent", plugin.getAgent());
             add.setParam("src_plugin", plugin.getPluginID());
             add.setParam("dst_region", plugin.getRegion());
-            add.setParam("dst_agent", plugin.getRegion());
+            add.setParam("dst_agent", plugin.getAgent());
             add.setParam("dst_plugin", "plugin/0");
 
 
